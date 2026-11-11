@@ -1,27 +1,21 @@
-# 환경 변수 (API 키) — 절대 올리지 않기
+# 비밀값 — 절대 GitHub에 올리지 않음
+backend/.env
 .env
-.env.*
-!.env.example
 
 # Python
+backend/.venv/
 __pycache__/
-*.py[cod]
-.venv/
-venv/
-*.sqlite3
-*.db
+*.pyc
+.pytest_cache/
 
-# Node / React
-node_modules/
-dist/
-build/
+# 업로드된 사진 (개인 기록)
+backend/uploads/*
+!backend/uploads/.gitkeep
 
-# 테스트 중 생성되는 사진·음성 파일
-uploads/
-tmp/
-
-# OS / 에디터
+# Node
+frontend/node_modules/
+frontend/dist/
+*.log
 .DS_Store
-Thumbs.db
-.vscode/
-.idea/
+docs/fonts-original/
+docs/fonts-original/
