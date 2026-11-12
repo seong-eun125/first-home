@@ -6,6 +6,8 @@
 from functools import lru_cache
 from pathlib import Path
 
+import re
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -14,7 +16,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore",
+        hide_input_in_errors=True,  # 오류 로그에 비밀번호가 찍히지 않도록
     )
 
     # --- 실행 환경 ---
@@ -29,6 +32,17 @@ class Settings(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def _pymysql_driver(cls, v: str) -> str:
+        # 배포 화면에 붙여 넣다 섞인 공백·줄바꿈·따옴표·"DATABASE_URL=" 접두어 제거
+        v = re.sub(r"\s+", "", v or "")
+        if v.upper().startswith("DATABASE_URL="):
+            v = v[len("DATABASE_URL="):]
+        v = v.strip("'\"")
+        if not re.match(r"^mysql(\+pymysql)?://[^:/@]+:[^@]*@[^:/@]+(:\d+)?/\w+", v):
+            raise ValueError(
+                "DATABASE_URL 형식이 올바르지 않습니다. "
+                "mysql://사용자:비밀번호@호스트:4000/DB이름 형태인지 확인하세요 "
+                f"(시작: {v.split('//')[0][:12]!r}, 길이: {len(v)}, '@' 개수: {v.count('@')})"
+            )
         # 호스팅 서비스가 주는 mysql://... 주소를 그대로 붙여 넣어도 동작하도록
         if v.startswith("mysql://"):
             v = "mysql+pymysql://" + v[len("mysql://"):]
