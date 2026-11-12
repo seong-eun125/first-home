@@ -106,7 +106,7 @@ export default function PrecheckPage() {
         <PrecheckIllo className="pointer-events-none absolute -bottom-2 right-2 hidden h-40 w-auto sm:block lg:right-10 lg:h-48" />
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         {/* 입력 */}
         <Card>
           <CardContent className="flex flex-col gap-5 pt-6">
@@ -324,7 +324,7 @@ function Result({ r, onReset }: { r: PrecheckResult; onReset: () => void }) {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="rounded-2xl bg-white/75 p-4">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
               <Sparkles className="h-3.5 w-3.5" /> {r.mode === 'openai' ? 'AI 판단' : '1차 판단 (규칙 기반)'} · {r.verdict_labels[r.ai_verdict]}
@@ -349,7 +349,7 @@ function Result({ r, onReset }: { r: PrecheckResult; onReset: () => void }) {
         {r.error && <p className="mt-3 text-xs text-normal">AI 호출 문제: {r.error}</p>}
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {/* 읽은 정보 */}
         <Card>
           <CardHeader className="flex-row items-center gap-3 pb-2">
@@ -390,7 +390,7 @@ function Result({ r, onReset }: { r: PrecheckResult; onReset: () => void }) {
               </p>
             )}
             {r.gates.map((g) => (
-              <div key={g.label} className="flex gap-2.5 rounded-xl bg-surface px-3 py-2.5 text-[13px]">
+              <div key={g.label} className="flex min-w-0 gap-2.5 rounded-xl bg-surface px-3 py-2.5 text-[13px]">
                 {g.status === 'pass' ? (
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-good" />
                 ) : g.status === 'fail' ? (
@@ -398,7 +398,7 @@ function Result({ r, onReset }: { r: PrecheckResult; onReset: () => void }) {
                 ) : (
                   <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                 )}
-                <div>
+                <div className="min-w-0">
                   <div className="font-semibold">{g.label}</div>
                   <div className="text-muted-foreground">{g.detail}</div>
                 </div>
@@ -426,12 +426,12 @@ function Result({ r, onReset }: { r: PrecheckResult; onReset: () => void }) {
           <CardTitle className="text-[15px]">내 우선순위로 본 평가</CardTitle>
           <p className="text-xs text-muted-foreground">중요하게 설정한 항목부터 보여 드려요. 광고 문구는 광고하는 쪽의 주장이니 현장에서 확인해 주세요.</p>
         </CardHeader>
-        <CardContent className="grid gap-2.5 sm:grid-cols-2">
+        <CardContent className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           {r.priority_review.map((pr) => {
             const meta = CATEGORY_META[pr.category]
             const a = ASSESS[pr.assessment]
             return (
-              <div key={pr.category} className="flex gap-3 rounded-2xl border border-border p-3.5">
+              <div key={pr.category} className="flex min-w-0 gap-3 rounded-2xl border border-border p-3.5">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-soft">
                   <meta.icon className="h-4.5 w-4.5 text-primary" />
                 </span>
@@ -468,7 +468,7 @@ function Result({ r, onReset }: { r: PrecheckResult; onReset: () => void }) {
         </section>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex-row items-center gap-2 pb-2">
             <MessageCircleQuestion className="h-4.5 w-4.5 text-primary" />
@@ -508,6 +508,15 @@ function Result({ r, onReset }: { r: PrecheckResult; onReset: () => void }) {
           <RotateCcw /> 다른 매물 판정하기
         </Button>
       </div>
+      <Link
+        to="/survey"
+        className="flex items-center justify-between gap-3 rounded-2xl bg-[#F7F2EA] p-4 text-[13px] transition-colors hover:bg-[#F1E9DC]"
+      >
+        <span>
+          <b className="font-semibold">AI 판정이 도움이 됐나요?</b> 2분 후기 설문으로 알려 주세요.
+        </span>
+        <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
+      </Link>
       <p className="text-xs leading-relaxed text-muted-foreground">
         이 판정은 광고 내용과 내 기준을 바탕으로 한 참고 의견이에요. 실제 집 상태, 권리관계(등기부등본), 계약 조건은 반드시 직접 확인해 주세요.
       </p>
@@ -517,9 +526,9 @@ function Result({ r, onReset }: { r: PrecheckResult; onReset: () => void }) {
 
 function QuoteChip({ q }: { q: string }) {
   return (
-    <span className="ml-1.5 inline-flex max-w-full items-center gap-1 rounded-md bg-surface px-1.5 py-0.5 align-middle text-[11px] text-muted-foreground">
-      <Quote className="h-3 w-3 shrink-0" />
-      <span className="truncate">{q}</span>
+    <span className="mt-1 flex w-fit max-w-full items-start gap-1 rounded-md bg-surface px-1.5 py-0.5 text-[11px] leading-relaxed text-muted-foreground">
+      <Quote className="mt-[3px] h-3 w-3 shrink-0" />
+      <span className="line-clamp-2 min-w-0 [overflow-wrap:anywhere]">{q}</span>
     </span>
   )
 }

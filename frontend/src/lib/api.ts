@@ -16,6 +16,8 @@ import type {
   MarketReport,
   MarketStatus,
   PrecheckResult,
+  SurveyInfo,
+  SurveyResults,
   ProfileInput,
   ProfileResponse,
   ScoreResult,
@@ -125,6 +127,10 @@ export const api = {
     for (const f of input.images ?? []) fd.append('images', f)
     return request<PrecheckResult>('/precheck', { method: 'POST', body: fd })
   },
+  survey: () => request<SurveyInfo>('/survey'),
+  submitSurvey: (body: { segment: string | null; scores: Record<string, number>; good_text: string; improve_text: string }) =>
+    request<{ ok: boolean }>('/survey', { method: 'PUT', body: JSON.stringify(body) }),
+  surveyResults: () => request<SurveyResults>('/survey/results'),
   marketStatus: () => request<MarketStatus>('/market/status'),
   marketRegions: () => request<{ code: string; name: string }[]>('/market/regions'),
   marketRent: (q: { lawd_cd: string; house_type: string; dong?: string; listing_id?: number; save?: boolean }) => {

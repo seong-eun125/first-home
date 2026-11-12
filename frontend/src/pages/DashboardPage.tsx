@@ -11,6 +11,7 @@ import { CATEGORY_META, CATEGORY_ORDER } from '@/lib/constants'
 import type { CategoryKey, HomeData, ScoreResult, User } from '@/lib/types'
 import { cn, daysUntil, formatDate, won } from '@/lib/utils'
 import { IconTile, PrecheckIllo, RoomScene } from '@/components/illustrations'
+import { InstallHint } from '@/components/InstallHint'
 
 const JOURNEY = ['기준 설정', '현장 기록', '비교·분석', '최종 결정', '입주 준비']
 
@@ -41,6 +42,7 @@ export default function DashboardPage({ user }: { user: User }) {
   const scores = useQuery({ queryKey: ['scores', 'preview', null], queryFn: () => api.previewScores() })
   const home = useQuery({ queryKey: ['home'], queryFn: api.home })
   const profile = useQuery({ queryKey: ['profile'], queryFn: api.profile })
+  const survey = useQuery({ queryKey: ['survey'], queryFn: api.survey })
 
   if (scores.isLoading || home.isLoading) {
     return (
@@ -62,6 +64,7 @@ export default function DashboardPage({ user }: { user: User }) {
 
   return (
     <div className="flex flex-col gap-6">
+      <InstallHint />
       <section className="overflow-hidden rounded-3xl border border-border bg-background shadow-soft">
         <div className="relative h-24 sm:h-32">
           <RoomScene />
@@ -80,6 +83,20 @@ export default function DashboardPage({ user }: { user: User }) {
       </section>
 
       <QuickTiles results={results} decided={!!h} />
+
+      {survey.data && !survey.data.mine && (
+        <Link
+          to="/survey"
+          className="group flex items-center gap-4 rounded-2xl border border-primary/20 bg-[#F7F2EA] p-4 transition-colors hover:border-primary/40 sm:p-5"
+        >
+          <IconTile kind="clipboard" size="lg" className="bg-white" />
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold">써 보니 어떠셨나요? 2분 후기 설문</div>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">10문항에 답해 주시면 서비스 개선에 큰 도움이 돼요.</p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      )}
 
       {h ? (
         <DecidedHero home={h} />

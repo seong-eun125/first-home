@@ -1,0 +1,20 @@
+# (선택) MySQL을 직접 설치하지 않고 Docker로 실행하고 싶을 때만 사용하세요.
+#   실행: docker compose up -d     중지: docker compose down
+# 이미 MySQL 8.0이 설치되어 있다면 이 파일은 쓰지 않아도 됩니다.
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: firsthome-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pw_change_me
+      MYSQL_DATABASE: firsthome
+      MYSQL_USER: firsthome
+      MYSQL_PASSWORD: firsthome_pw
+      TZ: Asia/Seoul
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - firsthome-mysql:/var/lib/mysql
+volumes:
+  firsthome-mysql:

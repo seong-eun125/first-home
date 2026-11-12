@@ -1,0 +1,17 @@
+{
+  "name": "FIRST HOME — 첫 자취 통합 관리",
+  "short_name": "FIRST HOME",
+  "description": "처음 혼자 집을 구하는 사람을 위한 매물 기록·AI 판정·비교·입주 준비 서비스",
+  "lang": "ko",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#2F5D50",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

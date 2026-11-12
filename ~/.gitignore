@@ -1,0 +1,19 @@
+# 비밀값 — 절대 GitHub에 올리지 않음
+backend/.env
+.env
+
+# Python
+backend/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 업로드된 사진 (개인 기록)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Node
+frontend/node_modules/
+frontend/dist/
+*.log
+.DS_Store

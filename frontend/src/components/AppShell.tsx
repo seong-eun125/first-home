@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookOpenCheck, Building2, GitCompareArrows, House, Info, KeyRound, LogOut, ScanSearch, SlidersHorizontal } from 'lucide-react'
+import { BookOpenCheck, Building2, GitCompareArrows, House, Info, KeyRound, LogOut, MessageSquareHeart, ScanSearch, SlidersHorizontal } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import type { User } from '@/lib/types'
@@ -40,7 +40,7 @@ export function AppShell({ user }: { user: User }) {
   }
 
   return (
-    <div className="min-h-dvh bg-surface/60">
+    <div className="min-h-dvh overflow-x-clip bg-surface/60">
       <header className="no-print sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
           <NavLink to="/" aria-label="FIRST HOME 홈">
@@ -65,6 +65,14 @@ export function AppShell({ user }: { user: User }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
+            <NavLink
+              to="/survey"
+              className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium text-primary hover:bg-brand-soft"
+              aria-label="사용 후기 설문"
+            >
+              <MessageSquareHeart className="h-4 w-4" />
+              <span className="hidden sm:inline">후기 설문</span>
+            </NavLink>
             <NavLink to="/intro" className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] text-muted-foreground hover:bg-surface hover:text-foreground">
               <Info className="h-4 w-4" />
               <span className="hidden sm:inline">서비스 소개</span>

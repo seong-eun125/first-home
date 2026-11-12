@@ -182,6 +182,8 @@
 | 추가 | 서비스 소개 페이지 (`/intro`, 로그인 전 첫 화면) | 동작 |
 | 추가 | 보증금 지키기 가이드 (국토교통부 안심계약 3·3·3법칙, 위험 신호, 공식 사이트 링크) | 동작 · 정적 안내 |
 | 추가 | **AI 매물 판정** (화면 캡처·링크·광고 글 → 내 조건 기준 판정, 후보 매물로 저장) | 동작 — 캡처 분석은 **OpenAI 키 필요**, 키가 없으면 광고 글을 규칙 기반으로 판정 |
+| 추가 | **설치형 웹앱(PWA)**: 휴대폰 '홈 화면에 추가' 시 앱 아이콘·전체 화면, 연결 끊김 안내 화면 | 동작 (배포 빌드에서) |
+| 추가 | **사용자 만족도 설문** (5점 척도 10문항 + 주관식 2개, 1인 1응답) + 관리자용 결과 집계(평균·분포·추천 의향·사용 통계·CSV) | 동작 · DB 저장 |
 | 추가 | 동네 실거래 시세 비교 (국토교통부 전월세 실거래가 API, 지역·주택유형별 최근 6개월) | 동작 — **키가 없으면 '예시 데이터'로 표시** |
 | 추가 | 자취 필수템 (옵션에 있는 것은 '이미 있음', 체크 기록·생활 패턴 맞춤 '우선', 구매 상태 관리) | 동작 · DB 저장 |
 | 미구현 | AI 계약서 PDF 분석, 생활 도우미 채팅, 사진 AI 분석, 지도 API 자동 거리, 공유 링크 | 화면에 '미포함'으로 안내 |
@@ -236,7 +238,7 @@ cp .env.example .env
 
 이어서 테이블을 만들고 기본 데이터를 넣습니다 (가상환경이 켜진 상태에서):
 ```bash
-alembic upgrade head          # 테이블 16개 생성
+alembic upgrade head          # 테이블 17개 생성
 python -m app.seed --demo     # 체크 항목 31개 + 시연용 데모 계정
 ```
 
@@ -334,7 +336,7 @@ npm run dev
 ```bash
 python -m pytest -q
 ```
-`26 passed`가 나오면 정상입니다. 테스트는 `firsthome_test` DB만 사용합니다.
+`31 passed`가 나오면 정상입니다. 테스트는 `firsthome_test` DB만 사용합니다.
 
 ---
 
@@ -372,9 +374,9 @@ firsthome/
 
 > shadcn/ui 컴포넌트는 shadcn CLI 대신 같은 방식(Radix UI + Tailwind 소스 파일)으로 `src/components/ui/`에 직접 넣었습니다. 작업 환경에서 shadcn 레지스트리 사이트에 접속할 수 없었기 때문이며, 사용 방법은 동일합니다.
 
-## 8. DB 테이블 (16개)
+## 8. DB 테이블 (17개)
 
-`market_cache`(실거래가 응답 캐시) · `home_items`(필수템 구매 목록) · `users` · `user_profiles`(생활 패턴·예산·절대 조건) · `priority_weights`(카테고리 가중치) · `checklist_items`(체크 항목 마스터) · `listings`(매물) · `listing_visits`(방문 기록) · `listing_checks`(체크 결과) · `photos` · `comparisons`(비교 실행 기록) · `ai_reports`(AI 결과·캐시) · `ai_usage_logs`(AI 사용량) · `homes`(최종 선택) · `home_tasks`(할 일) · `home_costs`(비용)
+`survey_responses`(만족도 설문) · `market_cache`(실거래가 응답 캐시) · `home_items`(필수템 구매 목록) · `users` · `user_profiles`(생활 패턴·예산·절대 조건) · `priority_weights`(카테고리 가중치) · `checklist_items`(체크 항목 마스터) · `listings`(매물) · `listing_visits`(방문 기록) · `listing_checks`(체크 결과) · `photos` · `comparisons`(비교 실행 기록) · `ai_reports`(AI 결과·캐시) · `ai_usage_logs`(AI 사용량) · `homes`(최종 선택) · `home_tasks`(할 일) · `home_costs`(비용)
 
 모든 매물·사진·리포트 조회는 로그인한 사용자 소유인지 확인한 뒤에만 응답합니다 (다른 사람의 매물 번호를 넣어도 404).
 
@@ -389,8 +391,15 @@ firsthome/
 - 판정(낮은 편/비슷한 편/높은 편)은 비슷한 보증금 거래 중 월세 백분위로 계산하는 규칙입니다. AI가 정하지 않습니다.
 - 키 점검: `python -m app.molit_check` (기본: 서울 구로구 오피스텔 지난달)
 
----
 
-## 프로젝트 변경 이력
-- 이 저장소는 같은 과목의 이전 아이디어 **'차근차근'(고령층 AI 기차표 예매 도우미)** 으로 시작했고, 2026년 11월 주제를 **FIRST HOME**으로 변경했습니다.
-- 이전 코드는 커밋 기록과 태그 `chageunchageun-final`에서 확인할 수 있습니다.
+## 10. 배포 (한 서버로 화면 + API)
+
+`frontend/dist`(빌드 결과)가 있으면 FastAPI가 화면까지 함께 제공합니다. 같은 주소라서 로그인 쿠키와 CORS 설정이 단순합니다.
+
+- **Docker 이미지:** 저장소 최상위의 `Dockerfile`이 프론트 빌드 → 백엔드 설치 → 시작 시 `alembic upgrade head` → 서버 실행까지 처리합니다.
+- **호스팅 환경변수:** `backend/.env.example` 맨 아래 '배포 서버에서 설정할 값'을 참고하세요.
+  - `APP_ENV=production`이면 32자 이상의 `JWT_SECRET`이 없을 때 서버가 시작되지 않습니다 (토큰 위조 방지).
+  - `COOKIE_SECURE=true`이면 https에서만 로그인 쿠키를 보냅니다.
+  - `DB_SSL=true`이면 클라우드 MySQL에 인증서 검증된 암호화 연결을 씁니다.
+- **만족도 설문 결과:** `ADMIN_EMAILS`에 넣은 계정으로 로그인해 `/survey/results`에서 볼 수 있습니다. 관리자·데모 계정의 응답과 사용 기록은 집계에서 제외됩니다.
+- **업로드 사진:** 무료 호스팅은 재배포 때 서버 파일이 지워질 수 있어 현장 사진이 사라질 수 있습니다.

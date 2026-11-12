@@ -81,8 +81,22 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "ss05";
     letter-spacing: -0.01em;
+    /* 한글은 단어(띄어쓰기) 단위로 줄바꿈: '되니/까'처럼 단어 중간에서 끊기지 않게 */
+    word-break: keep-all;
+    /* 띄어쓰기 없는 아주 긴 문자열(주소·URL·옵션 나열)은 넘치지 않도록 그때만 줄바꿈 */
+    overflow-wrap: break-word;
+  }
+  /* 제목은 줄 길이를 고르게 (지원 브라우저에서만 적용) */
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p, li, blockquote {
+    text-wrap: pretty;
+  }
+  /* 그리드 칸이 내용(긴 문자열) 때문에 화면보다 넓어지지 않게 */
+  :where(.grid) > * {
+    min-width: 0;
   }
   ::selection {
     background: var(--color-brand-soft);

@@ -1,0 +1,139 @@
+@import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
+@import "tailwindcss";
+
+/* 사이트 기본 폰트: 채이활짝 (눈누 무료 웹폰트). 600은 Bold, 900은 Heavy로 표시됩니다.
+   이 폰트에 없는 기호는 아래 Pretendard로 자동 대체됩니다. */
+@font-face {
+  font-family: "Chai Hwaljjak";
+  src: url("/fonts/ChaiHwaljjak-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Chai Hwaljjak";
+  src: url("/fonts/ChaiHwaljjak-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Chai Hwaljjak";
+  src: url("/fonts/ChaiHwaljjak-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Chai Hwaljjak";
+  src: url("/fonts/ChaiHwaljjak-Heavy.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* FIRST HOME 디자인 토큰 (기획서 9-4) */
+@theme {
+  --font-sans: "Chai Hwaljjak", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+
+  --color-background: #ffffff;
+  --color-surface: #f5f6f4;
+  --color-border: #e3e6e1;
+  --color-input: #dfe3dd;
+  --color-foreground: #1f2a26;
+  --color-muted: #f0f2ef;
+  --color-muted-foreground: #5f6b66;
+  --color-card: #ffffff;
+  --color-card-foreground: #1f2a26;
+
+  --color-primary: #2f5d50;
+  --color-primary-hover: #264d42;
+  --color-primary-foreground: #ffffff;
+  --color-brand-soft: #e8efeb;
+  --color-sage: #7c9885;
+  --color-ring: #2f5d50;
+
+  --color-good: #2e7d4f;
+  --color-good-soft: #e6f2ea;
+  --color-normal: #b7791f;
+  --color-normal-soft: #fbf1df;
+  --color-bad: #c0392b;
+  --color-bad-soft: #fbe9e7;
+  --color-unknown: #7a847f;
+  --color-unknown-soft: #f1f2f0;
+  --color-destructive: #c0392b;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-soft: 0 1px 2px rgba(31, 42, 38, 0.04), 0 2px 8px rgba(31, 42, 38, 0.04);
+  --shadow-lift: 0 4px 20px rgba(31, 42, 38, 0.08);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    letter-spacing: -0.01em;
+    /* 한글은 단어(띄어쓰기) 단위로 줄바꿈: '되니/까'처럼 단어 중간에서 끊기지 않게 */
+    word-break: keep-all;
+    /* 띄어쓰기 없는 아주 긴 문자열(주소·URL·옵션 나열)은 넘치지 않도록 그때만 줄바꿈 */
+    overflow-wrap: break-word;
+  }
+  /* 제목은 줄 길이를 고르게 (지원 브라우저에서만 적용) */
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p, li, blockquote {
+    text-wrap: pretty;
+  }
+  /* 그리드 칸이 내용(긴 문자열) 때문에 화면보다 넓어지지 않게 */
+  :where(.grid) > * {
+    min-width: 0;
+  }
+  ::selection {
+    background: var(--color-brand-soft);
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 소개 페이지 등장 애니메이션 */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.reveal.is-visible { opacity: 1; transform: none; }
+.animate-fade-up { animation: fade-up 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-float { animation: float-slow 6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .animate-fade-up, .animate-float { animation: none; transition: none; opacity: 1; transform: none; }
+}
+
+/* 인쇄용 비교 결과 (비교 화면의 '인쇄·PDF 저장') */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .print-full {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+}

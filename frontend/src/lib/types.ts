@@ -396,3 +396,40 @@ export interface PrecheckResult {
   listing_draft: Partial<ListingInput> & { nickname: string; address: string }
   profile_ready: boolean
 }
+
+// ---------------------------------------------------------------- 만족도 설문
+export interface SurveyQuestion {
+  id: string
+  area: string
+  text: string
+}
+export interface SurveyMine {
+  segment: string | null
+  scores: Record<string, number>
+  good_text: string | null
+  improve_text: string | null
+  updated_at: string | null
+}
+export interface SurveyInfo {
+  version: number
+  scale: string[]
+  segments: { value: string; label: string }[]
+  questions: SurveyQuestion[]
+  open: { id: 'good_text' | 'improve_text'; text: string }[]
+  mine: SurveyMine | null
+  is_admin: boolean
+}
+export interface SurveyResults {
+  respondents: number
+  overall_mean: number | null
+  recommend_top2_pct: number | null
+  questions: (SurveyQuestion & { mean: number | null; sd: number | null; dist: number[]; top2_pct: number | null })[]
+  segments: Record<string, number>
+  good: string[]
+  improve: string[]
+  first_at: string | null
+  last_at: string | null
+  usage: { users: number; onboarded: number; users_with_listing: number; listings: number; precheck_runs: number; ai_reports: number; decided_homes: number }
+  scale: string[]
+  excluded_note: string
+}
