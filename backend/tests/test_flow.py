@@ -41,7 +41,7 @@ def fresh_db():
 
 def client_for(email: str) -> TestClient:
     c = TestClient(app)
-    r = c.post("/api/auth/signup", json={"email": email, "password": "password123", "name": "테스터"})
+    r = c.post("/api/auth/signup", json={"email": email, "password": "password123!", "name": "테스터"})
     assert r.status_code == 201, r.text
     return c
 

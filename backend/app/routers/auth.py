@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -26,6 +26,16 @@ def _set_cookie(response: Response, user_id: int) -> None:
         max_age=settings.jwt_expire_hours * 3600,
         path="/",
     )
+
+
+@router.get("/check-email")
+def check_email(email: str = Query(max_length=255), db: Session = Depends(get_db)):
+    """회원가입 화면의 이메일 중복 확인 (가입 가능 여부만 알려 줌)."""
+    e = email.strip().lower()
+    if "@" not in e or "." not in e.split("@")[-1]:
+        return {"available": False, "reason": "invalid"}
+    taken = db.scalar(select(User.id).where(User.email == e)) is not None
+    return {"available": not taken, "reason": "taken" if taken else None}
 
 
 @router.post("/signup", response_model=UserOut, status_code=201)

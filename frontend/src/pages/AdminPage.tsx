@@ -1,8 +1,7 @@
 /** 운영 현황 (관리자 전용, 읽기 전용) — 테스트 기간 사용량·AI 호출량·설문 진행 상황 */
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, BarChart3, CircleAlert, CircleCheck, RefreshCw, Table2 } from 'lucide-react'
+import { BarChart3, CircleAlert, CircleCheck, RefreshCw, Table2 } from 'lucide-react'
 import { api, ApiError } from '@/lib/api'
 import type { AdminDaily, AdminOverview } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -24,8 +23,8 @@ export default function AdminPage() {
       <div className="mx-auto max-w-md rounded-2xl bg-surface p-8 text-center text-sm text-muted-foreground">
         {forbidden ? '운영 현황은 관리자 계정에서만 볼 수 있어요.' : (error as Error).message}
         <div className="mt-4">
-          <Button asChild variant="outline">
-            <Link to="/">홈으로</Link>
+          <Button variant="outline" onClick={() => location.reload()}>
+            다시 시도
           </Button>
         </div>
       </div>
@@ -47,22 +46,10 @@ export default function AdminPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="no-print flex flex-wrap items-center justify-between gap-2">
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/">
-            <ArrowLeft /> 홈
-          </Link>
+      <div className="no-print flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw className={cn(isFetching && 'animate-spin')} /> 새로고침
         </Button>
-        <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link to="/survey/results">
-              <BarChart3 /> 설문 결과
-            </Link>
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
-            <RefreshCw className={cn(isFetching && 'animate-spin')} /> 새로고침
-          </Button>
-        </div>
       </div>
 
       <section className="rounded-3xl bg-primary p-6 text-white sm:p-8">

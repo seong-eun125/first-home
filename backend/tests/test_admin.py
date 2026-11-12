@@ -35,3 +35,23 @@ def test_overview_admin_only_and_counts(monkeypatch):
     assert set(d["ai"]["by_mode"]) >= {"openai", "mock", "cached"}
     # 개인정보(이메일)는 응답에 없어야 함
     assert "tester@test.com" not in r.text and "boss@test.com" not in r.text
+
+
+def test_signup_password_rules_and_email_check():
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    c = TestClient(app)
+    assert c.get("/api/auth/check-email", params={"email": "new@test.com"}).json() == {"available": True, "reason": None}
+    assert c.get("/api/auth/check-email", params={"email": "not-an-email"}).json()["available"] is False
+    for bad in ["short1!", "password!!", "12345678!", "password12", "pass word1!"]:
+        r = c.post("/api/auth/signup", json={"email": "new@test.com", "password": bad, "name": "새사람"})
+        assert r.status_code == 422, bad
+        assert "비밀번호는" in r.text
+    r = c.post("/api/auth/signup", json={"email": "New@test.com", "password": "Goodpass1!", "name": " 새사람 "})
+    assert r.status_code == 201 and r.json()["name"] == "새사람"
+    assert c.get("/api/auth/check-email", params={"email": "NEW@test.com"}).json() == {"available": False, "reason": "taken"}
+    assert c.post("/api/auth/signup", json={"email": "new@test.com", "password": "Goodpass1!", "name": "x"}).status_code == 409
+    # 로그인은 규칙과 관계없이 기존 비밀번호로 가능 (데모 계정 등)
+    assert c.post("/api/auth/login", json={"email": "new@test.com", "password": "Goodpass1!"}).status_code == 200

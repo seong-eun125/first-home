@@ -18,6 +18,7 @@ import PrecheckPage from '@/pages/PrecheckPage'
 import SurveyPage from '@/pages/SurveyPage'
 import SurveyResultsPage from '@/pages/SurveyResultsPage'
 import AdminPage from '@/pages/AdminPage'
+import { AdminShell } from '@/components/AdminShell'
 
 function FullLoader() {
   return (
@@ -48,7 +49,7 @@ function ServerDown({ message }: { message: string }) {
 export default function App() {
   const location = useLocation()
   const me = useQuery({ queryKey: ['me'], queryFn: api.me, retry: false })
-  const profile = useQuery({ queryKey: ['profile'], queryFn: api.profile, enabled: !!me.data })
+  const profile = useQuery({ queryKey: ['profile'], queryFn: api.profile, enabled: !!me.data && !me.data.is_admin })
 
   // 서비스 소개는 로그인 없이도 볼 수 있습니다.
   if (location.pathname === '/intro') {
@@ -66,6 +67,20 @@ export default function App() {
     return <ServerDown message={me.error.message} />
   }
   if (!me.data) return <FullLoader />
+
+  // 관리자 계정: 온보딩 없이 운영 현황·설문 결과만
+  if (me.data.is_admin) {
+    return (
+      <Routes>
+        <Route element={<AdminShell user={me.data} />}>
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/survey/results" element={<SurveyResultsPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    )
+  }
+
   if (profile.isLoading) return <FullLoader />
 
   const needsOnboarding = !profile.data?.profile?.onboarding_done
@@ -85,7 +100,6 @@ export default function App() {
         <Route path="/precheck" element={<PrecheckPage />} />
         <Route path="/survey" element={<SurveyPage />} />
         <Route path="/survey/results" element={<SurveyResultsPage />} />
-        <Route path="/admin" element={<AdminPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/settings" element={<OnboardingPage firstTime={false} embedded />} />

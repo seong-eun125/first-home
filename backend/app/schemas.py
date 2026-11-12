@@ -15,10 +15,44 @@ class ORM(BaseModel):
 
 
 # ---------------------------------------------------------------- 인증
+PASSWORD_SPECIALS = set("!@#$%^&*()_+-=[]{};':\",.<>/?\\|`~")
+
+
+def password_problems(pw: str) -> list[str]:
+    """비밀번호 규칙 (프론트엔드 회원가입 화면과 같은 규칙)."""
+    problems = []
+    if not 8 <= len(pw) <= 72:
+        problems.append("8~72자")
+    if not any(c.isascii() and c.isalpha() for c in pw):
+        problems.append("영문")
+    if not any(c.isdigit() for c in pw):
+        problems.append("숫자")
+    if not any(c in PASSWORD_SPECIALS for c in pw):
+        problems.append("특수문자")
+    if any(c.isspace() for c in pw):
+        problems.append("공백 없이")
+    return problems
+
+
 class SignupIn(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=72)
+    password: str = Field(max_length=72)
     name: str = Field(min_length=1, max_length=50)
+
+    @field_validator("password")
+    @classmethod
+    def _strong_password(cls, v: str) -> str:
+        problems = password_problems(v)
+        if problems:
+            raise ValueError("비밀번호는 " + ", ".join(problems) + " 조건을 지켜 주세요.")
+        return v
+
+    @field_validator("name")
+    @classmethod
+    def _name_not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("이름을 입력해 주세요.")
+        return v.strip()
 
 
 class LoginIn(BaseModel):

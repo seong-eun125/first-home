@@ -1,7 +1,7 @@
 /** 만족도 설문 결과 (관리자 전용) — 발표용 정량 평가 화면 */
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Download, Printer } from 'lucide-react'
+import { Download, Printer } from 'lucide-react'
 import { api, ApiError } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,7 +22,7 @@ export default function SurveyResultsPage() {
         {forbidden ? '설문 결과는 관리자 계정에서만 볼 수 있어요.' : (error as Error).message}
         <div className="mt-4">
           <Button asChild variant="outline">
-            <Link to="/survey">설문으로 돌아가기</Link>
+            <Link to="/">처음으로</Link>
           </Button>
         </div>
       </div>
@@ -42,12 +42,7 @@ export default function SurveyResultsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="no-print flex flex-wrap items-center justify-between gap-2">
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/survey">
-            <ArrowLeft /> 설문
-          </Link>
-        </Button>
+      <div className="no-print flex flex-wrap items-center justify-end gap-2">
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm">
             <a href="/api/survey/results.csv">

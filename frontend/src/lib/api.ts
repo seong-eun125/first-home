@@ -52,7 +52,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     let msg = '요청을 처리하지 못했습니다.'
     if (data?.detail) {
       if (typeof data.detail === 'string') msg = data.detail
-      else if (Array.isArray(data.detail)) msg = data.detail.map((d: { msg: string }) => d.msg).join(', ')
+      else if (Array.isArray(data.detail)) msg = data.detail.map((d: { msg: string }) => d.msg.replace(/^Value error, /, '')).join(', ')
     } else if (res.status === 502 || res.status === 504) {
       msg = '백엔드 서버가 응답하지 않습니다. uvicorn이 실행 중인지 확인해 주세요.'
     }
@@ -67,6 +67,8 @@ export const api = {
   // 인증
   me: () => request<User>('/auth/me'),
   login: (email: string, password: string) => request<User>('/auth/login', { method: 'POST', body: json({ email, password }) }),
+  checkEmail: (email: string) =>
+    request<{ available: boolean; reason: 'invalid' | 'taken' | null }>(`/auth/check-email?email=${encodeURIComponent(email)}`),
   signup: (email: string, password: string, name: string) =>
     request<User>('/auth/signup', { method: 'POST', body: json({ email, password, name }) }),
   logout: () => request<void>('/auth/logout', { method: 'POST' }),

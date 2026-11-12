@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookOpenCheck, Gauge, Building2, GitCompareArrows, House, Info, KeyRound, LogOut, MessageSquareHeart, ScanSearch, SlidersHorizontal } from 'lucide-react'
+import { BookOpenCheck, Building2, GitCompareArrows, House, Info, KeyRound, LogOut, MessageSquareHeart, ScanSearch, SlidersHorizontal } from 'lucide-react'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import type { User } from '@/lib/types'
@@ -65,21 +65,6 @@ export function AppShell({ user }: { user: User }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1 sm:gap-3">
-            {user.is_admin && (
-              <NavLink
-                to="/admin"
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium text-muted-foreground hover:bg-surface hover:text-foreground',
-                    isActive && 'bg-surface text-foreground',
-                  )
-                }
-                aria-label="운영 현황 (관리자)"
-              >
-                <Gauge className="h-4 w-4" />
-                <span className="hidden sm:inline">운영 현황</span>
-              </NavLink>
-            )}
             <NavLink
               to="/survey"
               className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium text-primary hover:bg-brand-soft"
