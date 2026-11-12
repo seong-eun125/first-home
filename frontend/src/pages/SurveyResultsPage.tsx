@@ -1,7 +1,9 @@
 /** 만족도 설문 결과 (관리자 전용) — 발표용 정량 평가 화면 */
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Download, Printer } from 'lucide-react'
+import { Download, Loader2, Printer } from 'lucide-react'
+import { toast } from 'sonner'
 import { api, ApiError } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +14,35 @@ import { cn, formatDate } from '@/lib/utils'
 // 1점(빨강) → 5점(초록)
 const DIST_COLORS = ['#C0392B', '#E59866', '#D9CFBE', '#7C9885', '#2F5D50']
 
+/**
+ * CSV를 페이지 이동 없이 내려받습니다.
+ * (링크로 이동하면, 무료 서버가 잠든 동안 Render의 '깨우는 중' 화면이 같은 주소를 계속 다시 불러와
+ *  CSV가 여러 번 내려받아지는 문제가 있었습니다.)
+ */
+async function downloadCsv(setBusy: (v: boolean) => void) {
+  setBusy(true)
+  try {
+    const res = await fetch('/api/survey/results.csv', { credentials: 'include' })
+    const type = res.headers.get('content-type') ?? ''
+    if (!res.ok || !type.includes('text/csv')) {
+      toast.error('서버가 깨어나는 중이에요. 10~20초 뒤에 다시 눌러 주세요.')
+      return
+    }
+    const url = URL.createObjectURL(await res.blob())
+    const a = Object.assign(document.createElement('a'), { href: url, download: `firsthome_survey_${new Date().toISOString().slice(0, 10)}.csv` })
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  } catch {
+    toast.error('내려받기에 실패했어요. 잠시 후 다시 시도해 주세요.')
+  } finally {
+    setBusy(false)
+  }
+}
+
 export default function SurveyResultsPage() {
+  const [busy, setBusy] = useState(false)
   const { data, isLoading, error } = useQuery({ queryKey: ['survey-results'], queryFn: api.surveyResults })
 
   if (error) {
@@ -44,10 +74,8 @@ export default function SurveyResultsPage() {
     <div className="flex flex-col gap-5">
       <div className="no-print flex flex-wrap items-center justify-end gap-2">
         <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm">
-            <a href="/api/survey/results.csv">
-              <Download /> 응답 원자료 CSV
-            </a>
+          <Button variant="outline" size="sm" onClick={() => downloadCsv(setBusy)} disabled={busy}>
+            {busy ? <Loader2 className="animate-spin" /> : <Download />} 응답 원자료 CSV
           </Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer /> 인쇄·PDF
