@@ -197,7 +197,10 @@ SYSTEM_PROMPT = """당신은 처음 자취방을 구하는 사람을 위해 부�
 5. 광고 문구(풀옵션, 역세권, 채광 좋음 등)는 광고하는 쪽의 주장이라는 점을 감안해 현장 확인을 권합니다.
 6. verdict는 good(조건에 대체로 맞고 방문해 볼 만함) / check(확인이 필요한 점이 있음) / bad(사용자 조건과 맞지 않음) 중 하나입니다. 예산·절대 조건은 백엔드가 다시 검사합니다.
 7. 주거 안전·법적 문제 없음을 보장하는 표현을 쓰지 않고, 법률 판단을 하지 않습니다.
-8. 한국어로 짧고 구체적으로 씁니다. 지정된 JSON 형식으로만 답합니다."""
+8. 카테고리 뜻: noise=도로·이웃 소음과 방음 / security=공동현관·CCTV·방범창·사생활 / hygiene=곰팡이·누수·해충·청결 / light=방향·창문·채광·환기 / facility=보일러·수압·에어컨 등 설비와 옵션 가전 / space=면적·구조·수납·분리형 / convenience=역·버스·편의시설까지의 거리와 주변 생활. 옵션 가전 목록은 facility의 근거이지 convenience의 근거가 아닙니다. cost(비용)는 백엔드가 계산하므로 priority_review에 넣지 않습니다.
+9. red_flags에는 계약·권리관계 위험(근저당·신탁·근생 등), 숨은 비용, 과장·불명확한 광고, 서두르게 하는 표현 같은 '위험 신호'만 넣습니다. 조건을 충족한다는 확인(예: 반지하가 아님)이나 예산 비교는 넣지 않습니다(백엔드가 검사). 위험 신호가 없으면 빈 배열입니다.
+10. quote는 원문의 핵심 부분만 30자 이내로 짧게 옮깁니다. 긴 목록 전체를 옮기지 않습니다.
+11. 한국어로 짧고 구체적으로 씁니다. 지정된 JSON 형식으로만 답합니다."""
 
 FORMAT = """다음 JSON 형식으로만 답하세요:
 {"title": "매물 한 줄 설명", "extracted": {"deposit_manwon": null, "monthly_rent_manwon": null, "maintenance_fee_manwon": null, "maintenance_includes": [], "area_m2": null, "floor": null, "total_floors": null, "floor_type": "normal|first|semi_basement|rooftop|unknown", "house_type": "offi|rh|sh|apt|unknown", "address_text": null, "options": [], "available_from": null, "built_year": null, "entrance_lock": null, "station_walk_text": null},
@@ -207,12 +210,13 @@ FORMAT = """다음 JSON 형식으로만 답하세요:
  "verdict": "good|check|bad", "verdict_reason": "2문장 이내", "summary": "2~3문장",
  "questions_to_ask": ["중개사·임대인에게 물어볼 질문"], "visit_checklist": ["현장에서 꼭 볼 것"]}
 house_type: offi=오피스텔, rh=빌라·다세대·연립, sh=원룸 건물·다가구·단독, apt=아파트.
-priority_review는 8개 카테고리 중 user에게 중요한 순서로 최대 6개, red_flags 최대 4개, questions_to_ask 최대 4개, visit_checklist 최대 5개."""
+priority_review는 cost를 뺀 7개 카테고리 중 user에게 중요한 순서로 최대 6개, red_flags 최대 4개, questions_to_ask 최대 4개, visit_checklist 최대 5개."""
 
 
 def build_payload(user_ctx: dict, source_kind: str, source_text: str, image_hashes: list[str]) -> dict:
     return {
         "user": user_ctx,
+        "prompt_version": "precheck-2",  # 프롬프트를 바꾸면 이전 캐시를 쓰지 않도록
         "source_kind": source_kind,  # url | text | image
         "source": source_text[:MAX_SOURCE_CHARS],
         "image_count": len(image_hashes),

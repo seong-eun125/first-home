@@ -151,7 +151,7 @@ def test_precheck_openai_mode_rules_override(monkeypatch):
     monkeypatch.setattr(s, "openai_model", "test-model")
     seen = {}
 
-    def fake_call(payload, fmt, images=None, system_prompt=None, model=None):
+    def fake_call(payload, fmt, images=None, system_prompt=None, model=None, **kw):
         seen["images"] = images
         seen["has_user"] = "user" in payload
         return {
@@ -203,3 +203,61 @@ def test_rank_models_and_auto_selection(monkeypatch):
     monkeypatch.setattr(s, "openai_model", "my-model")
     assert ai_service.current_model() == "my-model"  # .env에 적으면 그대로 사용
     ai_service.reset_auto_model()
+
+
+# ---------------------------------------------------------------- OpenAI 호출 형식 (가짜 클라이언트)
+def test_openai_request_contains_json_word_and_token_limit(monkeypatch):
+    s = get_settings()
+    monkeypatch.setattr(s, "openai_api_key", "test")
+    monkeypatch.setattr(s, "openai_model", "gpt-4.1-mini")
+    seen = {}
+
+    class Resp:
+        status = "completed"
+        output_text = '```json\n{"summary": "ok"}\n```'
+        usage = None
+
+    class Responses:
+        def create(self, **kw):
+            seen.update(kw)
+            return Resp()
+
+    monkeypatch.setattr(ai_service, "_client", lambda: type("C", (), {"responses": Responses()})())
+    data, _ = ai_service.call_openai({"a": 1}, "fmt", images=["data:image/jpeg;base64,AAAA"], max_tokens=3500)
+    assert data == {"summary": "ok"}  # 코드 블록으로 감싸도 읽음
+    text = seen["input"][0]["content"][0]["text"]
+    assert "json" in text  # Responses API의 json_object 조건 (소문자 'json'이 있어야 함)
+    assert seen["input"][0]["content"][1]["type"] == "input_image"
+    assert seen["max_output_tokens"] == 3500
+
+
+def test_parse_json_text_and_truncation(monkeypatch):
+    assert ai_service.parse_json_text('결과: {"a": 1} 입니다') == {"a": 1}
+    with pytest.raises(ai_service.AIError) as e:
+        ai_service.parse_json_text('{"summary": "잘린 응답')
+    assert "잘렸" in str(e.value) or "JSON" in str(e.value)
+
+    s = get_settings()
+    monkeypatch.setattr(s, "openai_api_key", "test")
+    monkeypatch.setattr(s, "openai_model", "gpt-4.1-mini")
+    import httpx
+    import openai
+
+    class Responses:
+        def create(self, **kw):
+            req = httpx.Request("POST", "https://api.openai.com/v1/responses")
+            raise openai.BadRequestError("bad", response=httpx.Response(400, request=req), body=None)
+
+    class Choice:
+        finish_reason = "length"
+        message = type("M", (), {"content": '{"summary": "잘'})()
+
+    class Completions:
+        def create(self, **kw):
+            return type("R", (), {"choices": [Choice()], "usage": None})()
+
+    client = type("C", (), {"responses": Responses(), "chat": type("Ch", (), {"completions": Completions()})()})()
+    monkeypatch.setattr(ai_service, "_client", lambda: client)
+    with pytest.raises(ai_service.AIError) as e:
+        ai_service.call_openai({"a": 1}, "fmt")
+    assert "길이 제한" in str(e.value)

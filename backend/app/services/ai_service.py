@@ -140,7 +140,37 @@ def _client():
     )
 
 
-def _via_responses(client, system: str, user_text: str, images: list[str] | None = None, model: str = "") -> tuple[str, dict]:
+def _token_limit(max_tokens: int | None, reasoning: bool) -> int:
+    """출력 토큰 상한. 호출별 요청값과 .env 값 중 큰 값, 추론 모델은 생각에 쓰는 토큰까지 고려해 넉넉히."""
+    settings = get_settings()
+    limit = max(settings.ai_max_output_tokens, max_tokens or 0)
+    return max(limit, 4000) if reasoning else limit
+
+
+def parse_json_text(content: str) -> dict:
+    """모델 응답에서 JSON 객체를 꺼냅니다. ```json 코드 블록이나 앞뒤 설명이 붙어도 처리합니다."""
+    text = (content or "").strip()
+    fence = re.match(r"^```(?:json)?\s*(.*?)\s*```$", text, re.S)
+    if fence:
+        text = fence.group(1)
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        start, end = text.find("{"), text.rfind("}")
+        if start == -1 or end <= start:
+            raise AIError("OpenAI 응답이 JSON 형식이 아닙니다.") from None
+        try:
+            data = json.loads(text[start : end + 1])
+        except json.JSONDecodeError as e:
+            raise AIError("OpenAI 응답이 JSON 형식이 아니거나 중간에 잘렸습니다. 다시 시도해 주세요.") from e
+    if not isinstance(data, dict):
+        raise AIError("OpenAI 응답 형식이 올바르지 않습니다.")
+    return data
+
+
+def _via_responses(
+    client, system: str, user_text: str, images: list[str] | None = None, model: str = "", max_tokens: int | None = None
+) -> tuple[str, dict]:
     """최신 모델 권장 방식인 Responses API로 호출. images는 data URL 목록(캡처 판정용)."""
     settings = get_settings()
     if images:
@@ -156,7 +186,7 @@ def _via_responses(client, system: str, user_text: str, images: list[str] | None
         "input": input_value,
         "text": {"format": {"type": "json_object"}},
         # 추론 모델은 생각하는 데 쓰는 토큰도 이 한도에 포함되므로 넉넉히
-        "max_output_tokens": max(settings.ai_max_output_tokens, 4000) if reasoning else settings.ai_max_output_tokens,
+        "max_output_tokens": _token_limit(max_tokens, reasoning),
         "store": False,  # 요청 내용을 OpenAI 쪽에 대화로 저장하지 않도록 요청
     }
     if settings.ai_temperature.strip():
@@ -174,7 +204,9 @@ def _via_responses(client, system: str, user_text: str, images: list[str] | None
     return (resp.output_text or "").strip(), usage
 
 
-def _via_chat(client, system: str, user_text: str, images: list[str] | None = None, model: str = "") -> tuple[str, dict]:
+def _via_chat(
+    client, system: str, user_text: str, images: list[str] | None = None, model: str = "", max_tokens: int | None = None
+) -> tuple[str, dict]:
     """Responses API를 쓸 수 없는 환경을 위한 Chat Completions 대체 경로."""
     settings = get_settings()
     reasoning = is_reasoning_model(model)
@@ -187,7 +219,7 @@ def _via_chat(client, system: str, user_text: str, images: list[str] | None = No
         "model": model,
         "messages": [{"role": "system", "content": system}, {"role": "user", "content": user_content}],
         "response_format": {"type": "json_object"},
-        "max_completion_tokens": max(settings.ai_max_output_tokens, 4000) if reasoning else settings.ai_max_output_tokens,
+        "max_completion_tokens": _token_limit(max_tokens, reasoning),
     }
     if settings.ai_temperature.strip():
         kwargs["temperature"] = float(settings.ai_temperature)
@@ -199,6 +231,8 @@ def _via_chat(client, system: str, user_text: str, images: list[str] | None = No
         "prompt_tokens": getattr(resp.usage, "prompt_tokens", None) if resp.usage else None,
         "completion_tokens": getattr(resp.usage, "completion_tokens", None) if resp.usage else None,
     }
+    if getattr(resp.choices[0], "finish_reason", None) == "length":
+        raise AIError("응답이 길이 제한에 걸려 끝까지 생성되지 않았습니다. .env의 AI_MAX_OUTPUT_TOKENS를 늘려 보세요.")
     return (resp.choices[0].message.content or "").strip(), usage
 
 
@@ -208,6 +242,7 @@ def call_openai(
     images: list[str] | None = None,
     system_prompt: str | None = None,
     model: str | None = None,
+    max_tokens: int | None = None,
 ) -> tuple[dict, dict]:
     """OpenAI 호출. (응답 JSON, 사용량) 반환. Responses API → 실패 시 Chat Completions 순서로 시도."""
     settings = get_settings()
@@ -223,17 +258,22 @@ def call_openai(
 
     client = _client()
     system = (system_prompt or SYSTEM_PROMPT) + "\n\n" + fmt
-    user_text = "<data>\n" + json.dumps(user_payload, ensure_ascii=False) + "\n</data>"
+    # OpenAI 규칙: JSON 형식 응답을 요청할 때는 입력 메시지에 'json'이라는 단어가 있어야 함
+    user_text = (
+        "아래 <data>는 분석할 입력 데이터(json)입니다. 지정된 형식의 json 객체로만 답하세요. Respond with a json object only.\n<data>\n"
+        + json.dumps(user_payload, ensure_ascii=False)
+        + "\n</data>"
+    )
     # 자동 선택일 때는, 이 키에서 막힌 모델이면 다음 후보로 최대 2번 더 시도
     to_try = [model] + ([c for c in _auto["candidates"] if c != model][:2] if auto else [])
     content, usage, last_err = "", {}, None
     for m in to_try:
         try:
             try:
-                content, usage = _via_responses(client, system, user_text, images, m)
+                content, usage = _via_responses(client, system, user_text, images, m, max_tokens)
             except (openai.NotFoundError, openai.BadRequestError) as first:
                 log.info("Responses API 사용 불가 → Chat Completions로 재시도: %s", str(first)[:200])
-                content, usage = _via_chat(client, system, user_text, images, m)
+                content, usage = _via_chat(client, system, user_text, images, m, max_tokens)
             if auto and m != _auto["model"]:
                 log.info("자동 선택 모델을 '%s'(으)로 바꿨습니다.", m)
                 _auto["model"] = m
@@ -250,9 +290,10 @@ def call_openai(
     if last_err is not None:
         raise AIError(f"OpenAI 호출 실패: {type(last_err).__name__}: {str(last_err)[:300]}") from last_err
     try:
-        data = json.loads(content)
-    except json.JSONDecodeError as e:
-        raise AIError("OpenAI 응답이 JSON 형식이 아닙니다.") from e
+        data = parse_json_text(content)
+    except AIError:
+        log.warning("JSON 파싱 실패 (응답 앞부분): %s", (content or "")[:200].replace("\n", " "))
+        raise
     return data, usage
 
 
@@ -361,6 +402,7 @@ def generate(
     images: list[str] | None = None,
     system_prompt: str | None = None,
     mock_available: bool = True,
+    max_tokens: int | None = None,
 ) -> tuple[AIReport, bool]:
     """(리포트, 캐시 사용 여부) 반환.
 
@@ -387,7 +429,9 @@ def generate(
             used_mode = "fallback"
         else:
             try:
-                raw, usage = call_openai(payload, fmt, images=images, system_prompt=system_prompt, model=model)
+                raw, usage = call_openai(
+                    payload, fmt, images=images, system_prompt=system_prompt, model=model, max_tokens=max_tokens
+                )
                 output = validate_fn(raw)
             except AIError as e:
                 log.warning("AI fallback: %s", e)

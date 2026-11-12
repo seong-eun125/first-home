@@ -30,10 +30,13 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    from app.database import db_connect_args
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args=db_connect_args(),  # 클라우드 DB SSL
     )
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)

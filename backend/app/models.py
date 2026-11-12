@@ -363,3 +363,18 @@ class MarketCache(Base):
     cache_key: Mapped[str] = mapped_column(String(40), unique=True)  # 예) offi:11530:202610
     payload: Mapped[list] = mapped_column(JSON)
     fetched_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class SurveyResponse(Base):
+    """서비스 만족도 설문 (1인 1응답, 다시 제출하면 수정)."""
+
+    __tablename__ = "survey_responses"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    segment: Mapped[str | None] = mapped_column(String(20))  # preparing | living | interested | other
+    scores: Mapped[dict] = mapped_column(JSON)  # {"q1": 1~5, ..., "q10": 1~5}
+    good_text: Mapped[str | None] = mapped_column(Text)
+    improve_text: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now())

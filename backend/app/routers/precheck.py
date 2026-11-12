@@ -80,6 +80,7 @@ async def run_precheck(
             images=data_urls or None,
             system_prompt=pc.SYSTEM_PROMPT,
             mock_available=bool(source_text.strip()),
+            max_tokens=3500,  # 판정 결과는 항목이 많아 리포트보다 길게
         )
     except ai_service.AIError as e:
         raise HTTPException(503, str(e)) from e

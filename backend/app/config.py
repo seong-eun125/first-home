@@ -6,6 +6,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -16,10 +17,22 @@ class Settings(BaseSettings):
         env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore"
     )
 
+    # --- 실행 환경 ---
+    app_env: str = "development"  # 배포 서버에서는 production
+
     # --- DB ---
     database_url: str = (
         "mysql+pymysql://firsthome:firsthome_pw@127.0.0.1:3306/firsthome?charset=utf8mb4"
     )
+    db_ssl: bool = False  # 클라우드 MySQL처럼 암호화 연결이 필요하면 true
+
+    @field_validator("database_url")
+    @classmethod
+    def _pymysql_driver(cls, v: str) -> str:
+        # 호스팅 서비스가 주는 mysql://... 주소를 그대로 붙여 넣어도 동작하도록
+        if v.startswith("mysql://"):
+            v = "mysql+pymysql://" + v[len("mysql://"):]
+        return v
 
     # --- 인증 ---
     jwt_secret: str = "change-me-in-.env"
@@ -28,6 +41,11 @@ class Settings(BaseSettings):
 
     # --- CORS / 프론트 주소 ---
     frontend_origin: str = "http://localhost:5173"
+    # 배포 시 FastAPI가 프론트엔드 빌드(dist)를 함께 서빙 (폴더가 없으면 API만 동작)
+    frontend_dist: str = str(BASE_DIR.parent / "frontend" / "dist")
+
+    # --- 관리자 (만족도 설문 결과 화면) ---
+    admin_emails: str = ""  # 쉼표로 구분. 예) me@example.com
 
     # --- 파일 업로드 ---
     upload_dir: str = str(BASE_DIR / "uploads")
@@ -47,7 +65,7 @@ class Settings(BaseSettings):
     ai_daily_limit_per_user: int = 30
     ai_daily_limit_total: int = 300
     ai_note_max_chars: int = 200
-    ai_timeout_seconds: int = 40
+    ai_timeout_seconds: int = 90  # 캡처 3장 판정은 시간이 더 걸릴 수 있음
 
     # --- 국토교통부 실거래가 (공공데이터포털) ---
     # auto : 키가 있으면 실제 API 호출, 없으면 '예시 데이터'(화면에 예시라고 표시)
@@ -63,6 +81,14 @@ class Settings(BaseSettings):
         if mode in ("mock", "live"):
             return mode
         return "live" if self.molit_api_key.strip() else "mock"
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env.strip().lower() == "production"
+
+    @property
+    def admin_email_set(self) -> set[str]:
+        return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
 
     @property
     def openai_ready(self) -> bool:
