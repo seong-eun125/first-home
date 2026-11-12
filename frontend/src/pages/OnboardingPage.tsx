@@ -261,7 +261,7 @@ export default function OnboardingPage({ firstTime, embedded = false }: { firstT
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="deposit">보증금 상한</Label>
+              <Label htmlFor="deposit">보증금(전세금) 상한</Label>
               <div className="relative">
                 <Input id="deposit" inputMode="numeric" value={deposit} onChange={(e) => setDeposit(e.target.value.replace(/[^\d.]/g, ''))} placeholder="1000" className="pr-12" />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">만원</span>

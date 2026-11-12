@@ -242,7 +242,7 @@ export default function PrecheckPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2.5 text-[13px]">
             <Row label="월 예산" value={p?.monthly_budget ? `${man(p.monthly_budget / 10000)}원` : '미설정'} />
-            <Row label="보증금 예산" value={p?.deposit_budget ? `${man(p.deposit_budget / 10000)}원` : '미설정'} />
+            <Row label="보증금(전세금) 예산" value={p?.deposit_budget ? `${man(p.deposit_budget / 10000)}원` : '미설정'} />
             <Row label="중요한 순서" value={topWeights.join(' › ') || '미설정'} />
             <div>
               <div className="text-muted-foreground">절대 조건</div>

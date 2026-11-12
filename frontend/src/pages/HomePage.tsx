@@ -68,7 +68,7 @@ export default function HomePage() {
             <div className="text-[13px] font-medium text-white/70">최종 선택한 집</div>
             <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{home.listing?.nickname}</h1>
             <p className="mt-1 text-sm text-white/75">
-              {home.listing?.address} · 보증금 {won(home.listing?.deposit)} / 월세 {won(home.listing?.monthly_rent)}
+              {home.listing?.address} · {home.listing?.monthly_rent === 0 ? `전세금 ${won(home.listing?.deposit)}` : `보증금 ${won(home.listing?.deposit)} / 월세 ${won(home.listing?.monthly_rent)}`}
             </p>
           </div>
           <div className="flex items-end gap-6">
@@ -386,7 +386,7 @@ function Contract({ home, onSave }: { home: HomeData; onSave: (b: Record<string,
   })
   const toWon = (v: string) => (v === '' ? null : Math.round(Number(v) * 10_000))
   const rows = [
-    { key: 'deposit', label: '보증금', rec: home.listing?.deposit },
+    { key: 'deposit', label: home.listing?.monthly_rent === 0 ? '전세금' : '보증금', rec: home.listing?.deposit },
     { key: 'rent', label: '월세', rec: home.listing?.monthly_rent },
     { key: 'maintenance', label: '관리비', rec: home.listing?.maintenance_fee },
   ] as const

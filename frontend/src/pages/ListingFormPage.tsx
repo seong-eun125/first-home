@@ -13,7 +13,10 @@ import { FEE_PRESETS, FLOOR_TYPE_LABEL, OPTION_PRESETS } from '@/lib/constants'
 import type { ListingInput } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
+type Deal = 'monthly' | 'jeonse'
+
 type Form = {
+  deal: Deal
   nickname: string
   building_name: string
   address: string
@@ -36,6 +39,7 @@ type Form = {
 }
 
 const EMPTY: Form = {
+  deal: 'monthly',
   nickname: '', building_name: '', address: '', deposit: '', monthly_rent: '', maintenance_fee: '',
   fee_includes: [], floor: '', total_floors: '', floor_type: 'normal', area_m2: '', walk_minutes: '',
   move_in_available: '', contract_months: '', options: [], source_link: '', agency_memo: '', review_memo: '', first_impression: '',
@@ -118,6 +122,7 @@ export default function ListingFormPage() {
     draft && !editId
       ? {
           ...EMPTY,
+          deal: draft.monthly_rent === 0 ? 'jeonse' : 'monthly',
           nickname: draft.nickname ?? '',
           address: draft.address ?? '',
           deposit: man(draft.deposit),
@@ -144,6 +149,7 @@ export default function ListingFormPage() {
     const l = existing.data
     if (!l) return
     setF({
+      deal: l.monthly_rent === 0 ? 'jeonse' : 'monthly',
       nickname: l.nickname, building_name: l.building_name ?? '', address: l.address,
       deposit: man(l.deposit), monthly_rent: man(l.monthly_rent), maintenance_fee: man(l.maintenance_fee),
       fee_includes: l.fee_includes ?? [], floor: l.floor?.toString() ?? '', total_floors: l.total_floors?.toString() ?? '',
@@ -173,7 +179,7 @@ export default function ListingFormPage() {
         building_name: strOrNull(f.building_name),
         address: f.address.trim(),
         deposit: toWon(f.deposit),
-        monthly_rent: toWon(f.monthly_rent),
+        monthly_rent: f.deal === 'jeonse' ? 0 : toWon(f.monthly_rent),
         maintenance_fee: toWon(f.maintenance_fee),
         fee_includes: f.fee_includes,
         floor: numOrNull(f.floor),
@@ -199,7 +205,9 @@ export default function ListingFormPage() {
     onError: (e: Error) => toast.error(e.message),
   })
 
-  const valid = f.nickname.trim() && f.address.trim() && f.deposit !== '' && f.monthly_rent !== ''
+  const jeonse = f.deal === 'jeonse'
+  const valid =
+    f.nickname.trim() && f.address.trim() && f.deposit !== '' && (jeonse ? Number(f.deposit) > 0 : f.monthly_rent !== '')
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -262,15 +270,50 @@ export default function ListingFormPage() {
         <Card>
           <CardHeader>
             <CardTitle>비용</CardTitle>
-            <CardDescription>만원 단위로 입력하세요. 월세+관리비가 월 고정비로 계산돼요.</CardDescription>
+            <CardDescription>
+              만원 단위로 입력하세요. {jeonse ? '전세는 관리비가 월 고정비로 계산돼요.' : '월세+관리비가 월 고정비로 계산돼요.'}
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-3">
-            <Field label="보증금" required>
-              <Unit unit="만원" inputMode="decimal" value={f.deposit} onChange={(e) => set('deposit', e.target.value.replace(/[^\d.]/g, ''))} required placeholder="500" />
+            <div className="sm:col-span-3">
+              <Field label="계약 형태" required>
+                <div className="grid grid-cols-2 gap-1.5 rounded-lg bg-surface p-1" role="radiogroup" aria-label="계약 형태">
+                  {(
+                    [
+                      ['monthly', '월세 · 반전세'],
+                      ['jeonse', '전세'],
+                    ] as const
+                  ).map(([k, label]) => (
+                    <button
+                      key={k}
+                      type="button"
+                      role="radio"
+                      aria-checked={f.deal === k}
+                      onClick={() => set('deal', k)}
+                      className={cn(
+                        'rounded-md py-2 text-[13px] font-medium cursor-pointer',
+                        f.deal === k ? 'bg-background text-foreground shadow-soft' : 'text-muted-foreground',
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {jeonse
+                  ? '전세는 월세 없이 전세금만 입력해요. 같은 동네 전세 실거래가와 비교해 드려요.'
+                  : '보증금이 큰 반전세도 여기서 보증금과 월세를 함께 입력하세요.'}
+              </p>
+            </div>
+            <Field label={jeonse ? '전세금' : '보증금'} required>
+              <Unit unit="만원" inputMode="decimal" value={f.deposit} onChange={(e) => set('deposit', e.target.value.replace(/[^\d.]/g, ''))} required placeholder={jeonse ? '15000' : '500'} />
             </Field>
-            <Field label="월세" required>
-              <Unit unit="만원" inputMode="decimal" value={f.monthly_rent} onChange={(e) => set('monthly_rent', e.target.value.replace(/[^\d.]/g, ''))} required placeholder="45" />
-            </Field>
+            {!jeonse && (
+              <Field label="월세" required>
+                <Unit unit="만원" inputMode="decimal" value={f.monthly_rent} onChange={(e) => set('monthly_rent', e.target.value.replace(/[^\d.]/g, ''))} required placeholder="45" />
+              </Field>
+            )}
             <Field label="관리비">
               <Unit unit="만원" inputMode="decimal" value={f.maintenance_fee} onChange={(e) => set('maintenance_fee', e.target.value.replace(/[^\d.]/g, ''))} placeholder="7" />
             </Field>

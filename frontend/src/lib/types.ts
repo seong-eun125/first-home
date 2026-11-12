@@ -155,6 +155,7 @@ export interface ScoreResult {
   evidence: Record<string, { label: string; category: string; value: string | number; score: number | null; visit_time: string | null }>
   check_values: Record<string, string>
   monthly_total: number
+  monthly_rent?: number // 0이면 전세
   deposit: number
   rank?: number
 }
@@ -269,6 +270,7 @@ export interface HomeData {
     initial_total: number
     initial_non_refundable: number
     monthly_total: number
+  monthly_rent?: number // 0이면 전세
     monthly_budget: number | null
   }
   settle_tips: { item_id: string | null; title: string; text: string }[]

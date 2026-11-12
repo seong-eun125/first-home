@@ -28,7 +28,7 @@ import { ListingReport } from '@/components/ListingReport'
 import { MarketCard } from '@/components/MarketCard'
 import { CATEGORY_META, CATEGORY_ORDER, FLOOR_TYPE_LABEL, STATUS_LABEL } from '@/lib/constants'
 import type { CategoryKey } from '@/lib/types'
-import { cn, formatDateTime, won, wonFull } from '@/lib/utils'
+import { cn, formatDateTime, wonFull, priceLabel } from '@/lib/utils'
 
 export default function ListingDetailPage() {
   const id = Number(useParams().id)
@@ -272,7 +272,7 @@ export default function ListingDetailPage() {
               <div className="rounded-lg bg-surface p-3.5">
                 <div className="text-xs text-muted-foreground">보증금 / 월세</div>
                 <div className="tabular mt-0.5 text-xl font-bold">
-                  {won(l.deposit)} / {won(l.monthly_rent)}
+                  {priceLabel(l.deposit, l.monthly_rent)}
                 </div>
                 <div className="mt-2 flex justify-between text-xs">
                   <span className="text-muted-foreground">관리비 {wonFull(l.maintenance_fee)}</span>

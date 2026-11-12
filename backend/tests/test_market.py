@@ -108,3 +108,33 @@ def test_market_api_live_uses_cache(monkeypatch):
     monkeypatch.setattr(molit.httpx, "get", lambda *a, **k: httpx.Response(200, text=XML_AUTH))
     r = c.get("/api/market/rent", params={"lawd_cd": "11440", "house_type": "rh"})
     assert r.status_code == 502 and "인증키" in r.json()["detail"]
+
+
+def test_jeonse_listing_flow():
+    """전세(월세 0) 매물: 등록·점수·AI 입력·시세 비교가 전세 기준으로 동작."""
+    from test_flow import LISTING, client_for
+
+    c = client_for("jeonse@test.com")
+    bad = c.post("/api/listings", json={**LISTING, "deposit": 0, "monthly_rent": 0})
+    assert bad.status_code == 422 and "전세" in bad.text
+
+    body = {**LISTING, "nickname": "전세집", "deposit": 150_000_000, "monthly_rent": 0, "maintenance_fee": 70_000}
+    r = c.post("/api/listings", json=body)
+    assert r.status_code in (200, 201), r.text
+    lid = r.json()["id"]
+
+    score = c.get(f"/api/listings/{lid}/score").json()
+    assert score["monthly_rent"] == 0
+    assert score["monthly_total"] == 70_000  # 전세는 관리비만 월 고정비
+
+    from app.database import SessionLocal
+    from app.models import Listing
+    from app.services.ai_input import listing_context
+
+    with SessionLocal() as db:
+        payload = listing_context(db.get(Listing, lid), {}, {}, score)
+    assert payload["deal_type"] == "전세"
+
+    m = c.get("/api/market/rent", params={"lawd_cd": "11530", "house_type": "offi", "listing_id": lid}).json()
+    cmp = m.get("compare")
+    assert cmp is None or cmp["basis"] == "전세 거래"

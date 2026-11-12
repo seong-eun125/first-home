@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 FloorType = Literal["normal", "first", "semi_basement", "rooftop"]
 ListingStatus = Literal["candidate", "hold", "rejected", "missed", "selected"]
@@ -144,7 +144,12 @@ class ListingBase(BaseModel):
 
 
 class ListingCreate(ListingBase):
-    pass
+    @model_validator(mode="after")
+    def _jeonse_needs_deposit(self):
+        # 월세 0원 = 전세. 전세인데 전세금이 0이면 잘못 입력한 것
+        if self.monthly_rent == 0 and self.deposit == 0:
+            raise ValueError("전세라면 전세금을, 월세라면 월세를 입력해 주세요.")
+        return self
 
 
 class ListingUpdate(BaseModel):

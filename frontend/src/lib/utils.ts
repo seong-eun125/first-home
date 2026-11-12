@@ -20,6 +20,12 @@ export function won(amount: number | null | undefined): string {
   return amount.toLocaleString()
 }
 
+/** 월세가 0이면 전세로 표기 (예: '전세 2억', '500만 / 45만') */
+export function priceLabel(deposit: number | null | undefined, rent: number | null | undefined): string {
+  if (rent === 0) return `전세 ${won(deposit)}`
+  return `${won(deposit)} / ${won(rent)}`
+}
+
 export function wonFull(amount: number | null | undefined): string {
   if (amount === null || amount === undefined) return '-'
   return `${amount.toLocaleString()}원`

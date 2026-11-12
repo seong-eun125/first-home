@@ -10,7 +10,7 @@ import { CoverageMeter, EmptyState, PageHeader } from '@/components/shared'
 import { Building, BUILDING_BG } from '@/components/illustrations'
 import { FLOOR_TYPE_LABEL, STATUS_LABEL, scoreTone } from '@/lib/constants'
 import type { ListingSummary } from '@/lib/types'
-import { cn, won } from '@/lib/utils'
+import { cn, won, priceLabel } from '@/lib/utils'
 
 const FILTERS = [
   { key: 'active', label: '진행 중', match: (l: ListingSummary) => ['candidate', 'hold', 'selected'].includes(l.status) },
@@ -137,7 +137,7 @@ function ListingCard({ l }: { l: ListingSummary }) {
         </div>
         <div className="flex items-baseline gap-1.5">
           <span className="tabular text-lg font-bold">
-            {won(l.deposit)} / {won(l.monthly_rent)}
+            {priceLabel(l.deposit, l.monthly_rent)}
           </span>
           <span className="text-xs text-muted-foreground">관리비 {won(l.maintenance_fee)}</span>
         </div>

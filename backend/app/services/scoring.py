@@ -312,6 +312,7 @@ def compute_listing_score(
         "check_values": {c.item_id: c.value for c in listing.checks},
         "monthly_total": monthly_total,
         "deposit": listing.deposit,
+        "monthly_rent": listing.monthly_rent,  # 0이면 전세
     }
 
 

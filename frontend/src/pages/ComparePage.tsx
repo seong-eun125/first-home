@@ -270,7 +270,7 @@ export default function ComparePage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-[13px]">
                     <div className="rounded-lg bg-surface px-2.5 py-2">
-                      <div className="text-[11px] text-muted-foreground">보증금</div>
+                      <div className="text-[11px] text-muted-foreground">{r.monthly_rent === 0 ? '전세금' : '보증금'}</div>
                       <div className="tabular font-semibold">{won(r.deposit)}</div>
                     </div>
                     <div className="rounded-lg bg-surface px-2.5 py-2">
