@@ -4,6 +4,7 @@
  * 로그인 정보는 httpOnly 쿠키로 오가므로 프론트 코드에 토큰·API 키가 없습니다.
  */
 import type {
+  AdminOverview,
   AIReport,
   AIStatus,
   ChecklistItem,
@@ -131,6 +132,7 @@ export const api = {
   submitSurvey: (body: { segment: string | null; scores: Record<string, number>; good_text: string; improve_text: string }) =>
     request<{ ok: boolean }>('/survey', { method: 'PUT', body: JSON.stringify(body) }),
   surveyResults: () => request<SurveyResults>('/survey/results'),
+  adminOverview: () => request<AdminOverview>('/admin/overview'),
   marketStatus: () => request<MarketStatus>('/market/status'),
   marketRegions: () => request<{ code: string; name: string }[]>('/market/regions'),
   marketRent: (q: { lawd_cd: string; house_type: string; dong?: string; listing_id?: number; save?: boolean }) => {

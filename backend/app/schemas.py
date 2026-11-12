@@ -30,6 +30,7 @@ class UserOut(ORM):
     id: int
     email: str
     name: str
+    is_admin: bool = False  # 관리자 메뉴(운영 현황·설문 결과) 노출 여부
 
 
 # ---------------------------------------------------------------- 프로필·가중치

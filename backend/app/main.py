@@ -16,7 +16,7 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from .config import get_settings
 from .database import SessionLocal
-from .routers import ai, auth, home, listings, market, precheck, profile, scores, survey
+from .routers import admin, ai, auth, home, listings, market, precheck, profile, scores, survey
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("firsthome")
@@ -69,6 +69,7 @@ for r in (
     market.router,
     precheck.router,
     survey.router,
+    admin.router,
 ):
     app.include_router(r)
 

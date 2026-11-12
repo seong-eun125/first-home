@@ -12,6 +12,10 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 settings = get_settings()
 
 
+def _out(user: User) -> UserOut:
+    return UserOut(id=user.id, email=user.email, name=user.name, is_admin=user.email.lower() in settings.admin_email_set)
+
+
 def _set_cookie(response: Response, user_id: int) -> None:
     response.set_cookie(
         COOKIE_NAME,
@@ -33,7 +37,7 @@ def signup(body: SignupIn, response: Response, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     _set_cookie(response, user.id)
-    return user
+    return _out(user)
 
 
 @router.post("/login", response_model=UserOut)
@@ -42,7 +46,7 @@ def login(body: LoginIn, response: Response, db: Session = Depends(get_db)):
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(401, "이메일 또는 비밀번호가 올바르지 않습니다.")
     _set_cookie(response, user.id)
-    return user
+    return _out(user)
 
 
 @router.post("/logout", status_code=204)
@@ -52,4 +56,4 @@ def logout(response: Response):
 
 @router.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_current_user)):
-    return user
+    return _out(user)

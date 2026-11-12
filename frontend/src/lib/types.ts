@@ -4,6 +4,7 @@ export interface User {
   id: number
   email: string
   name: string
+  is_admin?: boolean
 }
 
 export interface Answers {
@@ -432,4 +433,46 @@ export interface SurveyResults {
   usage: { users: number; onboarded: number; users_with_listing: number; listings: number; precheck_runs: number; ai_reports: number; decided_homes: number }
   scale: string[]
   excluded_note: string
+}
+
+// ---------------------------------------------------------------- 관리자 운영 현황
+export interface AdminDaily {
+  date: string
+  signups: number
+  listings: number
+  ai_calls: number
+  surveys: number
+}
+export interface AdminOverview {
+  generated_at: string
+  excluded_note: string
+  survey_goal: number
+  totals: {
+    users: number
+    onboarded: number
+    listings: number
+    users_with_listing: number
+    visits: number
+    checks: number
+    photos: number
+    precheck_runs: number
+    ai_reports: number
+    decided_homes: number
+    survey_responses: number
+  }
+  funnel: { key: string; label: string; count: number }[]
+  daily: AdminDaily[]
+  ai: {
+    mode: string
+    model: string | null
+    today_calls: number
+    limit_total: number
+    limit_per_user: number
+    by_mode: Record<string, number>
+    failures: number
+    by_kind: { precheck: number; listing: number; compare: number }
+    prompt_tokens: number
+    completion_tokens: number
+  }
+  system: { app_env: string; molit_mode: string; commit: string | null; db: string }
 }

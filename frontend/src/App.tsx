@@ -17,6 +17,7 @@ import GuidePage from '@/pages/GuidePage'
 import PrecheckPage from '@/pages/PrecheckPage'
 import SurveyPage from '@/pages/SurveyPage'
 import SurveyResultsPage from '@/pages/SurveyResultsPage'
+import AdminPage from '@/pages/AdminPage'
 
 function FullLoader() {
   return (
@@ -84,6 +85,7 @@ export default function App() {
         <Route path="/precheck" element={<PrecheckPage />} />
         <Route path="/survey" element={<SurveyPage />} />
         <Route path="/survey/results" element={<SurveyResultsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/guide" element={<GuidePage />} />
         <Route path="/settings" element={<OnboardingPage firstTime={false} embedded />} />
