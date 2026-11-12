@@ -44,8 +44,8 @@ def upgrade() -> None:
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=False),
     sa.Column('name', sa.String(length=50), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
@@ -59,7 +59,7 @@ def upgrade() -> None:
     sa.Column('completion_tokens', sa.Integer(), nullable=True),
     sa.Column('cached', sa.Boolean(), nullable=False),
     sa.Column('success', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -71,7 +71,7 @@ def upgrade() -> None:
     sa.Column('listing_ids', sa.JSON(), nullable=False),
     sa.Column('weights_snapshot', sa.JSON(), nullable=False),
     sa.Column('result', sa.JSON(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -99,8 +99,8 @@ def upgrade() -> None:
     sa.Column('review_memo', sa.Text(), nullable=True),
     sa.Column('first_impression', sa.Text(), nullable=True),
     sa.Column('status', sa.String(length=20), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -110,7 +110,7 @@ def upgrade() -> None:
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('category', sa.String(length=30), nullable=False),
     sa.Column('weight', sa.Integer(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('user_id', 'category', name='uq_weight_user_cat')
@@ -126,8 +126,8 @@ def upgrade() -> None:
     sa.Column('max_walk_minutes', sa.Integer(), nullable=True),
     sa.Column('dealbreakers', sa.JSON(), nullable=False),
     sa.Column('onboarding_done', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('user_id')
@@ -143,7 +143,7 @@ def upgrade() -> None:
     sa.Column('model', sa.String(length=100), nullable=True),
     sa.Column('output', sa.JSON(), nullable=False),
     sa.Column('error', sa.Text(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['comparison_id'], ['comparisons.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['listing_id'], ['listings.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
@@ -163,9 +163,9 @@ def upgrade() -> None:
     sa.Column('contract_maintenance', sa.Integer(), nullable=True),
     sa.Column('contract_start', sa.Date(), nullable=True),
     sa.Column('contract_end', sa.Date(), nullable=True),
-    sa.Column('decided_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('decided_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['listing_id'], ['listings.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
@@ -177,7 +177,7 @@ def upgrade() -> None:
     sa.Column('visited_at', sa.DateTime(), nullable=False),
     sa.Column('occupancy', sa.String(length=20), nullable=False),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['listing_id'], ['listings.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -189,7 +189,7 @@ def upgrade() -> None:
     sa.Column('file_name', sa.String(length=255), nullable=False),
     sa.Column('original_name', sa.String(length=255), nullable=True),
     sa.Column('caption', sa.String(length=255), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['item_id'], ['checklist_items.id'], ),
     sa.ForeignKeyConstraint(['listing_id'], ['listings.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -228,7 +228,7 @@ def upgrade() -> None:
     sa.Column('visit_id', sa.Integer(), nullable=True),
     sa.Column('value', sa.String(length=50), nullable=False),
     sa.Column('note', sa.Text(), nullable=True),
-    sa.Column('checked_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('checked_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['item_id'], ['checklist_items.id'], ),
     sa.ForeignKeyConstraint(['listing_id'], ['listings.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['visit_id'], ['listing_visits.id'], ondelete='SET NULL'),

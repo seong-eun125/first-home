@@ -27,6 +27,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -212,6 +213,9 @@ class Photo(Base):
     )
     item_id: Mapped[str | None] = mapped_column(ForeignKey("checklist_items.id"))
     file_name: Mapped[str] = mapped_column(String(255))  # 서버 저장 파일명(무작위)
+    # 사진 본문(JPEG). 무료 호스팅은 서버 디스크가 지워지므로 DB에 저장합니다.
+    # deferred: 목록 조회 때는 불러오지 않고, 사진 파일을 요청할 때만 읽음
+    data: Mapped[bytes | None] = mapped_column(LargeBinary(length=16_777_215), deferred=True)
     original_name: Mapped[str | None] = mapped_column(String(255))
     caption: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

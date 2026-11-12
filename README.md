@@ -374,7 +374,7 @@ firsthome/
 
 > shadcn/ui 컴포넌트는 shadcn CLI 대신 같은 방식(Radix UI + Tailwind 소스 파일)으로 `src/components/ui/`에 직접 넣었습니다. 작업 환경에서 shadcn 레지스트리 사이트에 접속할 수 없었기 때문이며, 사용 방법은 동일합니다.
 
-## 8. DB 테이블 (17개)
+## 8. DB 테이블 (17개, 사진은 photos.data에 저장)
 
 `survey_responses`(만족도 설문) · `market_cache`(실거래가 응답 캐시) · `home_items`(필수템 구매 목록) · `users` · `user_profiles`(생활 패턴·예산·절대 조건) · `priority_weights`(카테고리 가중치) · `checklist_items`(체크 항목 마스터) · `listings`(매물) · `listing_visits`(방문 기록) · `listing_checks`(체크 결과) · `photos` · `comparisons`(비교 실행 기록) · `ai_reports`(AI 결과·캐시) · `ai_usage_logs`(AI 사용량) · `homes`(최종 선택) · `home_tasks`(할 일) · `home_costs`(비용)
 
@@ -402,4 +402,8 @@ firsthome/
   - `COOKIE_SECURE=true`이면 https에서만 로그인 쿠키를 보냅니다.
   - `DB_SSL=true`이면 클라우드 MySQL에 인증서 검증된 암호화 연결을 씁니다.
 - **만족도 설문 결과:** `ADMIN_EMAILS`에 넣은 계정으로 로그인해 `/survey/results`에서 볼 수 있습니다. 관리자·데모 계정의 응답과 사용 기록은 집계에서 제외됩니다.
-- **업로드 사진:** 무료 호스팅은 재배포 때 서버 파일이 지워질 수 있어 현장 사진이 사라질 수 있습니다.
+- **현장 사진:** 무료 호스팅은 서버 디스크가 재시작 때마다 지워지므로, 사진은 위치정보를 지운 JPEG로 **DB에 저장**합니다.
+- **추천 구성 (무료):** Render(웹 서버, `render.yaml` Blueprint) + TiDB Cloud Starter(MySQL 호환 DB, SSL 필수 → `DB_SSL=true`).
+  - Render 무료 서버는 15분 동안 접속이 없으면 잠들고, 다음 접속 때 깨어나는 데 약 1분이 걸립니다.
+  - `main` 브랜치에 push하면 자동으로 다시 배포됩니다.
+- **클라우드 DB 연결 점검:** `DATABASE_URL='mysql://...' DB_SSL=true python -m app.db_check` (비밀번호는 출력하지 않음)

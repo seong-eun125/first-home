@@ -32,6 +32,11 @@ class Settings(BaseSettings):
         # 호스팅 서비스가 주는 mysql://... 주소를 그대로 붙여 넣어도 동작하도록
         if v.startswith("mysql://"):
             v = "mysql+pymysql://" + v[len("mysql://"):]
+        # 클라우드 콘솔이 주는 주소에 붙은 ssl 관련 옵션은 지움 (암호화는 DB_SSL=true로 처리)
+        if "?" in v:
+            base, _, query = v.partition("?")
+            kept = [p for p in query.split("&") if p and not p.lower().startswith("ssl")]
+            v = base + ("?" + "&".join(kept) if kept else "")
         return v
 
     # --- 인증 ---

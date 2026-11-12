@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from PIL import Image, ImageOps, UnidentifiedImageError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -243,19 +243,18 @@ async def upload_photo(
     if img.mode not in ("RGB", "RGBA"):
         img = img.convert("RGB")
     clean = Image.frombytes(img.mode, img.size, img.tobytes())  # 픽셀만 복사 → 메타데이터 없음
-    ext = "png" if clean.mode == "RGBA" else "jpg"
-    name = f"{uuid.uuid4().hex}.{ext}"
-    upload_dir = Path(settings.upload_dir)
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    if ext == "jpg":
-        clean.save(upload_dir / name, "JPEG", quality=85)
-    else:
-        clean.save(upload_dir / name, "PNG")
-
+    if clean.mode == "RGBA":  # 투명 배경은 흰색으로 채워 JPEG로 (용량 절약)
+        bg = Image.new("RGB", clean.size, (255, 255, 255))
+        bg.paste(clean, mask=clean.split()[3])
+        clean = bg
+    buf = io.BytesIO()
+    clean.save(buf, "JPEG", quality=82, optimize=True)
+    name = f"{uuid.uuid4().hex}.jpg"
     photo = Photo(
         listing_id=listing.id,
         item_id=item_id or None,
         file_name=name,
+        data=buf.getvalue(),
         original_name=(file.filename or "")[:255],
         caption=(caption or None),
     )
@@ -271,10 +270,13 @@ def photo_file(photo_id: int, user: User = Depends(get_current_user), db: Sessio
     if not photo:
         raise HTTPException(404, "사진을 찾을 수 없습니다.")
     get_owned_listing(db, user, photo.listing_id)  # 소유자 확인
-    path = Path(settings.upload_dir) / photo.file_name
+    headers = {"Cache-Control": "private, max-age=86400"}
+    if photo.data:
+        return Response(content=photo.data, media_type="image/jpeg", headers=headers)
+    path = Path(settings.upload_dir) / photo.file_name  # 예전 방식(디스크)으로 저장된 사진
     if not path.exists():
         raise HTTPException(404, "사진 파일이 없습니다.")
-    return FileResponse(path)
+    return FileResponse(path, headers=headers)
 
 
 @router.delete("/photos/{photo_id}", status_code=204)

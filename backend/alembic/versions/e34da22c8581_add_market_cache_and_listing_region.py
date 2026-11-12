@@ -24,7 +24,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('cache_key', sa.String(length=40), nullable=False),
     sa.Column('payload', sa.JSON(), nullable=False),
-    sa.Column('fetched_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('fetched_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('cache_key')
     )

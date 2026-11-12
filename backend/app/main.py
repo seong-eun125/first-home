@@ -91,6 +91,9 @@ def health():
             count = db.execute(text("SELECT COUNT(*) FROM checklist_items")).scalar()
         return {"status": "ok", "db": "ok", "checklist_items": count, "ai_mode": settings.effective_ai_mode}
     except Exception as e:  # noqa: BLE001
+        log.error("DB 연결 확인 실패: %s", str(e).splitlines()[0])
+        if settings.is_production:  # 배포 환경에서는 DB 주소 등 내부 정보를 응답에 넣지 않음
+            return {"status": "error", "db": "error"}
         return {"status": "error", "db": "error", "detail": str(e).splitlines()[0]}
 
 

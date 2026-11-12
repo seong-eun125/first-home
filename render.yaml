@@ -1,0 +1,33 @@
+# Render 배포 설정 (Blueprint). Render 대시보드 → New → Blueprint → 이 저장소 선택
+# 비밀값(sync: false)은 배포할 때 Render 화면에서 직접 입력합니다. 이 파일에는 실제 값을 쓰지 마세요.
+services:
+  - type: web
+    name: firsthome
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    autoDeploy: true # main 브랜치에 push하면 자동으로 다시 배포
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true # Render가 무작위 비밀키를 만들어 줌
+      - key: DB_SSL
+        value: "true"
+      - key: DATABASE_URL
+        sync: false # TiDB Cloud 연결 주소
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: MOLIT_API_KEY
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false # 설문 결과를 볼 내 계정 이메일
+      - key: SEED_DEMO
+        value: "true"
+      - key: AI_DAILY_LIMIT_PER_USER
+        value: "15"
+      - key: AI_DAILY_LIMIT_TOTAL
+        value: "200"

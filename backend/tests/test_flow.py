@@ -188,6 +188,19 @@ def test_photo_upload_strips_exif():
     assert f.status_code == 200
     saved = Image.open(io.BytesIO(f.content))
     assert len(saved.getexif()) == 0
+    assert f.headers["content-type"] == "image/jpeg"
+    # 무료 호스팅 디스크가 지워져도 남도록 DB에 저장 (업로드 폴더에 파일이 생기지 않음)
+    from pathlib import Path
+
+    from app.config import get_settings
+
+    assert not (Path(get_settings().upload_dir) / r.json()["file_name"]).exists()
+    # 투명 PNG도 JPEG로 저장
+    png = io.BytesIO()
+    Image.new("RGBA", (20, 20), (0, 0, 0, 0)).save(png, "PNG")
+    png.seek(0)
+    r2 = c.post(f"/api/listings/{lid}/photos", files={"file": ("b.png", png, "image/png")})
+    assert r2.status_code == 201 and c.get(f"/api/photos/{r2.json()['id']}/file").headers["content-type"] == "image/jpeg"
     bad = c.post(f"/api/listings/{lid}/photos", files={"file": ("a.txt", io.BytesIO(b"hello"), "text/plain")})
     assert bad.status_code == 400
     assert c.delete(f"/api/photos/{pid}").status_code == 204
