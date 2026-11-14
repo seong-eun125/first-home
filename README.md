@@ -8,6 +8,7 @@
 | 형태 | 웹 서비스 (데스크톱 + 모바일 브라우저 대응) |
 | 스택 | React · TypeScript · Vite · Tailwind CSS · shadcn/ui / FastAPI · SQLAlchemy · Alembic / MySQL 8.0(개발) · TiDB Cloud(배포) / OpenAI API / 국토교통부 실거래가 오픈API |
 | 배포 | **https://firsthome-hzi4.onrender.com** (Render + TiDB Cloud, `main`에 push하면 자동 배포) |
+| 발표 자료 | [`docs/presentation/first-home-presentation.html`](docs/presentation/first-home-presentation.html) — 웹 슬라이드, 만족도 설문 결과(응답 12명, 평균 4.57/5) 포함 |
 | 상태 | 핵심 흐름(기준 설정 → AI 매물 판정 → 현장 체크 → 점수·비교 → AI 리포트 → 결정 → 입주 준비) 실제 동작 · 웹 배포 · 사용자 만족도 설문 진행 중 |
 
 ---
