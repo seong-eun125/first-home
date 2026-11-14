@@ -90,7 +90,7 @@ export default function ListingsPage() {
 }
 
 function ListingCard({ l }: { l: ListingSummary }) {
-  const tone = scoreTone(l.fit)
+  const tone = l.fit_provisional ? 'unknown' : scoreTone(l.fit)
   return (
     <Link
       to={`/listings/${l.id}`}
@@ -123,7 +123,7 @@ function ListingCard({ l }: { l: ListingSummary }) {
               'text-muted-foreground': tone === 'unknown',
             })}
           >
-            {l.fit ?? '–'}
+            {l.fit_provisional ? <span className="text-sm">체크 전</span> : (l.fit ?? '–')}
           </div>
         </div>
       </div>

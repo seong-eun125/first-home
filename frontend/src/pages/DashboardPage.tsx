@@ -140,12 +140,12 @@ export default function DashboardPage({ user }: { user: User }) {
                 className="group flex items-center gap-4 rounded-lg border border-transparent p-3 transition-colors hover:border-border hover:bg-surface/70"
               >
                 <span className={cn('tabular w-5 text-center text-lg font-bold', r.rank === 1 ? 'text-primary' : 'text-muted-foreground')}>{r.rank}</span>
-                <FitRing fit={r.fit} size={52} label="" />
+                <FitRing fit={r.fit} size={52} label="" provisional={r.fit_provisional} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="truncate font-semibold">{r.nickname}</span>
                     {r.dealbreaker_violations.length > 0 && <Badge variant="bad">조건 불일치</Badge>}
-                    {r.low_coverage && <Badge variant="normal">확인 부족</Badge>}
+                    {r.fit_provisional ? <Badge variant="outline">체크 전</Badge> : r.low_coverage && <Badge variant="normal">확인 부족</Badge>}
                   </div>
                   <div className="mt-0.5 text-[13px] text-muted-foreground">
                     보증금 {won(r.deposit)} · 월 {won(r.monthly_total)} · 미확인 {r.unverified.length}개

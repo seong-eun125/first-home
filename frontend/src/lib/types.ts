@@ -86,6 +86,7 @@ export interface ListingBase extends ListingInput {
 
 export interface ListingSummary extends ListingBase {
   fit: number | null
+  fit_provisional?: boolean // 현장 체크 전: 예산·도보 시간만 반영한 예상 점수
   coverage: number
   dealbreaker_violations: { code: string; label: string }[]
   unverified_count: number
@@ -146,6 +147,7 @@ export interface ScoreResult {
   listing_id: number
   nickname: string
   fit: number | null
+  fit_provisional?: boolean // 현장 체크 전: 예산·도보 시간만 반영한 예상 점수
   coverage: number
   low_coverage: boolean
   category_scores: Record<CategoryKey, CategoryScore>

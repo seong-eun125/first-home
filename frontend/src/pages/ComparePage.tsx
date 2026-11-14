@@ -51,7 +51,8 @@ export default function ComparePage() {
   }, [profile.data, weights])
   useEffect(() => {
     if (!active.length || selected.length) return
-    const sorted = [...active].sort((a, b) => (b.fit ?? -1) - (a.fit ?? -1))
+    const val = (l: { fit: number | null; fit_provisional?: boolean }) => (l.fit_provisional ? -1 : (l.fit ?? -1))
+    const sorted = [...active].sort((a, b) => val(b) - val(a))
     setSelected(sorted.slice(0, Math.min(3, sorted.length)).map((l) => l.id))
   }, [active, selected.length])
 
@@ -254,7 +255,7 @@ export default function ComparePage() {
                         {r.nickname}
                       </Link>
                     </div>
-                    <FitRing fit={r.fit} size={64} label="" />
+                    <FitRing fit={r.fit} size={64} label="" provisional={r.fit_provisional} />
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {r.dealbreaker_violations.map((v) => (

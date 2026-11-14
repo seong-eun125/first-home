@@ -63,6 +63,7 @@ def list_listings(user: User = Depends(get_current_user), db: Session = Depends(
             {
                 **ListingOut.model_validate(l).model_dump(mode="json"),
                 "fit": s["fit"],
+                "fit_provisional": s["fit_provisional"],
                 "coverage": s["coverage"],
                 "dealbreaker_violations": s["dealbreaker_violations"],
                 "unverified_count": len(s["unverified"]),

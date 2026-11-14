@@ -26,33 +26,63 @@ export function ValueBadge({ value }: { value: string | null | undefined }) {
 }
 
 /** 적합도 원형 게이지 */
-export function FitRing({ fit, size = 88, label = '적합도' }: { fit: number | null; size?: number; label?: string }) {
+export function FitRing({
+  fit,
+  size = 88,
+  label = '적합도',
+  provisional = false,
+}: {
+  fit: number | null
+  size?: number
+  label?: string
+  provisional?: boolean // 현장 체크 전이면 점수 대신 '체크 전'
+}) {
   const r = (size - 10) / 2
   const c = 2 * Math.PI * r
-  const tone = scoreTone(fit)
+  const tone = provisional ? 'unknown' : scoreTone(fit)
   const color = { good: 'var(--color-primary)', normal: 'var(--color-normal)', bad: 'var(--color-bad)', unknown: 'var(--color-unknown)' }[tone]
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
+    <div
+      className="relative shrink-0"
+      style={{ width: size, height: size }}
+      title={provisional && fit != null ? `현장 체크 전 · 예산·도보 시간만 반영한 예상 ${fit}점` : undefined}
+    >
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-muted)" strokeWidth={6} />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={color}
+          stroke="var(--color-muted)"
           strokeWidth={6}
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - (fit ?? 0) / 100)}
-          style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+          strokeDasharray={provisional ? '4 5' : undefined}
         />
+        {!provisional && (
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke={color}
+            strokeWidth={6}
+            strokeLinecap="round"
+            strokeDasharray={c}
+            strokeDashoffset={c * (1 - (fit ?? 0) / 100)}
+            style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+          />
+        )}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="tabular text-[26px] font-bold leading-none tracking-tight" style={{ fontSize: size * 0.3 }}>
-          {fit ?? '–'}
-        </span>
-        <span className="mt-0.5 text-[11px] text-muted-foreground">{label}</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+        {provisional ? (
+          <span className="font-semibold leading-tight text-muted-foreground" style={{ fontSize: Math.max(11, size * 0.16) }}>
+            체크 전
+          </span>
+        ) : (
+          <span className="tabular text-[26px] font-bold leading-none tracking-tight" style={{ fontSize: size * 0.3 }}>
+            {fit ?? '–'}
+          </span>
+        )}
+        {label && <span className="mt-0.5 text-[11px] text-muted-foreground">{label}</span>}
       </div>
     </div>
   )

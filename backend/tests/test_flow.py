@@ -237,3 +237,26 @@ def test_validator_drops_unsupported_claims():
     assert [p["text"] for p in out["pros"]] == ["조용함"]
     assert out["cons"] == [] and out["dropped_claims"] == 2
     assert [u["item_id"] for u in out["unverified"]] == ["boiler"]
+
+
+def test_unchecked_listing_score_is_provisional():
+    """현장 체크 전 매물은 적합도가 '예상'으로 표시되고, 체크한 매물보다 순위가 뒤에 온다."""
+    c = client_for("prov@test.com")
+    a = c.post("/api/listings", json={**LISTING, "nickname": "체크 안 함"}).json()["id"]
+    b = c.post("/api/listings", json={**LISTING, "nickname": "체크 함"}).json()["id"]
+
+    s = c.get(f"/api/listings/{a}/score").json()
+    assert s["fit_provisional"] is True
+    summary = {x["id"]: x for x in c.get("/api/listings").json()}
+    assert summary[a]["fit_provisional"] is True
+
+    items = c.get("/api/checklist-items").json()
+    status_item = next(i for i in items if i["input_type"] == "status")
+    r = c.put(f"/api/listings/{b}/checks", json={"checks": [{"item_id": status_item["id"], "value": "bad"}]})
+    assert r.status_code == 200, r.text
+    sb = c.get(f"/api/listings/{b}/score").json()
+    assert sb["fit_provisional"] is False
+
+    ranked = c.post("/api/scores/preview", json={"listing_ids": [a, b]}).json()
+    order = [x["listing_id"] for x in ranked["results"]]
+    assert order.index(b) < order.index(a)

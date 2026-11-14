@@ -140,6 +140,7 @@ def compute_listing_score(
 
     req_weight_total = 0.0
     req_weight_checked = 0.0
+    checklist_scored = 0  # 현장 체크로 점수가 매겨진 항목 수
 
     for item in items.values():
         chk = checks.get(item.id)
@@ -155,6 +156,7 @@ def compute_listing_score(
                 req_weight_checked += weights.get(item.category, 3)
         if s is not None:
             cat_values[item.category].append(s)
+            checklist_scored += 1
             if item.is_required:
                 cat_counts[item.category]["checked"] += 1
         if answered:
@@ -186,7 +188,7 @@ def compute_listing_score(
     if cs is not None:
         cat_values["cost"].append(cs)
         evidence["cost"] = {
-            "label": "월 고정비(월세+관리비)",
+            "label": "월 고정비(관리비)" if listing.monthly_rent == 0 else "월 고정비(월세+관리비)",
             "category": "cost",
             "value": monthly_total,
             "score": cs,
@@ -302,6 +304,8 @@ def compute_listing_score(
         "listing_id": listing.id,
         "nickname": listing.nickname,
         "fit": fit,
+        # 현장 체크를 하나도 안 했으면 적합도는 예산·도보 시간만으로 계산된 '예상' 값
+        "fit_provisional": checklist_scored == 0,
         "coverage": coverage,
         "low_coverage": coverage < 0.6,
         "category_scores": category_scores,
@@ -317,11 +321,12 @@ def compute_listing_score(
 
 
 def rank_results(results: list[dict]) -> list[dict]:
-    """절대 조건 위반 매물은 뒤로, 나머지는 적합도 높은 순."""
+    """절대 조건 위반 매물은 뒤로, 현장 체크 전(예상 점수) 매물은 그다음, 나머지는 적합도 높은 순."""
 
     def key(r):
         return (
             1 if r["dealbreaker_violations"] else 0,
+            1 if r.get("fit_provisional") else 0,
             -(r["fit"] if r["fit"] is not None else -1),
             -r["coverage"],
         )

@@ -680,13 +680,13 @@ def cost_review(ex: dict, user_ctx: dict) -> dict:
         return {"category": "cost", "label": CATEGORIES["cost"], "assessment": "unknown", "reason": "광고에서 월세를 찾지 못했어요.", "quote": None}
     total = rent + (fee or 0)
     if not budget:
-        return {"category": "cost", "label": CATEGORIES["cost"], "assessment": "unknown", "reason": f"월세+관리비 약 {total}만원이에요. 내 기준에서 월 예산을 정하면 비교해 드려요.", "quote": None}
+        return {"category": "cost", "label": CATEGORIES["cost"], "assessment": "unknown", "reason": f"{'관리비' if rent == 0 else '월세+관리비'} 약 {total}만원이에요. 내 기준에서 월 예산을 정하면 비교해 드려요.", "quote": None}
     ok = total * 10000 <= budget
     extra = "" if fee is not None else " (관리비 미확인)"
     return {
         "category": "cost",
         "label": CATEGORIES["cost"],
         "assessment": "good" if ok else "concern",
-        "reason": f"월세+관리비 약 {total}만원{extra}, 내 월 예산 {budget // 10000}만원" + (" 안이에요." if ok else "을 넘어요."),
+        "reason": f"{'관리비' if rent == 0 else '월세+관리비'} 약 {total}만원{extra}, 내 월 예산 {budget // 10000}만원" + (" 안이에요." if ok else "을 넘어요."),
         "quote": None,
     }

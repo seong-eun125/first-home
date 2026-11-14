@@ -159,10 +159,15 @@ export default function ListingDetailPage() {
           <Card>
             <CardContent className="flex flex-col gap-6 p-5 sm:flex-row">
               <div className="flex items-center gap-5 sm:w-60 sm:flex-col sm:items-start sm:border-r sm:border-border sm:pr-6">
-                <FitRing fit={s.fit} size={104} />
+                <FitRing fit={s.fit} size={104} provisional={s.fit_provisional} />
                 <div className="flex w-full flex-col gap-3">
                   <CoverageMeter coverage={s.coverage} />
-                  {s.low_coverage && (
+                  {s.fit_provisional ? (
+                    <p className="flex gap-1.5 text-xs text-muted-foreground">
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      현장 체크 전이에요.{s.fit != null && ` 예산·도보 시간만 반영하면 예상 ${s.fit}점이에요.`} 체크를 시작하면 적합도가 계산돼요.
+                    </p>
+                  ) : s.low_coverage && (
                     <p className="flex gap-1.5 text-xs text-normal">
                       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                       확인한 항목이 적어 점수가 실제와 다를 수 있어요.
