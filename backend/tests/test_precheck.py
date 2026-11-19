@@ -67,6 +67,25 @@ def test_rule_extract():
     assert {"융자", "근생", "급매", "관리비 별도"} <= quotes
 
 
+@pytest.mark.parametrize(
+    "text,flagged",
+    [
+        ("융자 조금 있음", True),
+        ("근저당 설정되어 있음", True),
+        ("대출 있음", True),
+        ("융자없는 집", False),
+        ("융자 없음, 깨끗한 집", False),
+        ("근저당 없는 매물", False),
+        ("근저당권 없음", False),
+        ("융자금 X", False),
+        ("무융자 원룸", False),
+    ],
+)
+def test_loan_flag_ignores_negation(text, flagged):
+    loan = [f for f in pc.rule_flags(text) if "대출(근저당)" in f["text"]]
+    assert bool(loan) is flagged
+
+
 def test_clean_drops_ungrounded_numbers():
     raw = {
         "extracted": {"deposit_manwon": 500, "monthly_rent_manwon": 99, "area_m2": 23},
