@@ -58,7 +58,8 @@ async def run_precheck(
             raise HTTPException(400, str(e)) from e
         data_urls.append(durl)
         hashes.append(h)
-    source_text = "\n\n".join(parts)[: pc.MAX_SOURCE_CHARS]
+    # 사이트 공통 버튼 문구(예: 당근의 '근저당·가압류 확인하기')는 AI와 규칙 모두에게 보내지 않음
+    source_text = pc.strip_site_boilerplate("\n\n".join(parts))[: pc.MAX_SOURCE_CHARS]
     kind = "image" if data_urls else ("url" if url and parts else "text")
 
     # 2) 내 조건

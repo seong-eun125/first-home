@@ -79,11 +79,48 @@ def test_rule_extract():
         ("근저당권 없음", False),
         ("융자금 X", False),
         ("무융자 원룸", False),
+        # 콜론이 붙은 '없음' 표기 (당근·직방 상세 정보 형식)
+        ("융자금: 없음", False),
+        ("융자금 : 0", False),
+        ("근저당：없음", False),
+        ("근저당권 : 없음", False),
+        # 없다는 뜻이 아니면 계속 경고
+        ("융자금: 확인 필요", True),
+        ("근저당: 있음", True),
+        # '대출가능여부'는 세입자 대출 얘기라 근저당 경고 대상이 아님
+        ("대출가능여부: 확인 필요", False),
     ],
 )
 def test_loan_flag_ignores_negation(text, flagged):
     loan = [f for f in pc.rule_flags(text) if "대출(근저당)" in f["text"]]
     assert bool(loan) is flagged
+
+
+DAANGN_FOOTER = "관련 매물 더 보기 등기부등본 분석으로 근저당·가압류 확인하기 홈 > 부동산"
+
+
+def test_site_boilerplate_not_flagged():
+    # 당근 매물 페이지 하단 링크 문구만으로는 근저당 경고를 내지 않음
+    page = "월세 1000/50 관리비 5만원 대출가능여부 불가능 " + DAANGN_FOOTER
+    assert not [f for f in pc.rule_flags(page) if "대출(근저당)" in f["text"]]
+    assert "근저당" not in pc.strip_site_boilerplate(page)
+    # 매물 설명에 진짜 근저당 얘기가 있으면 그대로 경고
+    real = "근저당 설정되어 있음 " + DAANGN_FOOTER
+    loan = [f for f in pc.rule_flags(real) if "대출(근저당)" in f["text"]]
+    assert loan and loan[0]["quote"] == "근저당"
+
+
+def test_precheck_link_footer_not_flagged(monkeypatch):
+    # 링크로 넣었을 때 사이트 문구가 AI와 규칙 양쪽에서 빠지는지 API까지 확인
+    c = client_for("pre-footer@test.com")
+    _profile(c)
+    monkeypatch.setattr(
+        pc, "fetch_url_text", lambda url: "보증금 1000만원 월세 50만원 관리비 5만원 남향 " + DAANGN_FOOTER
+    )
+    r = c.post("/api/precheck", data={"url": "https://realty.daangn.com/articles/1"})
+    assert r.status_code == 200, r.text
+    flags = r.json()["red_flags"]
+    assert not [f for f in flags if "근저당" in f["text"] or "근저당" in (f.get("quote") or "")]
 
 
 def test_clean_drops_ungrounded_numbers():
